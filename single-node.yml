@@ -1,0 +1,133 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tableau-server-in-a-container-deployment
+  namespace: gresb
+  labels:
+    app: tmp-tableau-single-node
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: tmp-tableau-single-node
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configfile
+  namespace: gresb
+data:
+  config.json: |-
+    {
+      "configEntities": {
+        "identityStore": {
+          "_type": "identityStoreType",
+          "type": "local"
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: datadir
+  namespace: gresb
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tmp-tableau-single-node
+  namespace: gresb
+spec:
+  progressDeadlineSeconds: 1800
+  selector:
+    matchLabels:
+      app: tmp-tableau-single-node
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tmp-tableau-single-node
+    spec:
+      tolerations:
+        - key: "dedicated"
+          value: "tableau"
+          operator: "Equal"
+          effect: "NoSchedule"         
+      securityContext:
+        runAsUser: 999
+        fsGroup: 998
+        fsGroupChangePolicy: "OnRootMismatch"
+      terminationGracePeriodSeconds: 120
+      hostname: foo
+      containers:
+      - name: tableau-server
+        image: 510016332031.dkr.ecr.eu-central-1.amazonaws.com/tableau-server:latest 
+        env:
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tmp-tableau-single-node
+              key: license_key
+        - name: TABLEAU_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: tmp-tableau-single-node
+              key: tableau_username
+        - name: TABLEAU_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tmp-tableau-single-node
+              key: tableau_password
+        resources:
+          requests:
+            memory: 32Gi
+            cpu: 7
+          limits:
+            memory: 32Gi
+            cpu: 7
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: configmount
+          mountPath: /docker/config/config.json
+          subPath: config.json
+        - name: datamount
+          mountPath: /var/opt/tableau
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - /docker/server-ready-check
+          initialDelaySeconds: 360
+          periodSeconds: 30
+          timeoutSeconds: 20
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - /docker/alive-check
+          initialDelaySeconds: 600
+          periodSeconds: 60
+          timeoutSeconds: 30
+      dnsPolicy: ClusterFirst
+      volumes:
+      - name: configmount
+        configMap:
+          name: configfile
+      - name: datamount
+        persistentVolumeClaim:
+          claimName: datadir
