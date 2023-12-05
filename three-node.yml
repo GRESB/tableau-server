@@ -26,7 +26,7 @@ data:
       },
       "topologyVersion" : {
         "nodes" : {
-          "somenodeid": {
+          "node1": {
                 "services": {
                     "filestore": {
                         "instances":[
@@ -185,7 +185,6 @@ data:
           }
         }
       }
-    }
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -227,6 +226,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: efs-claim
+  namespace: gresb
 spec:
   accessModes:
     - ReadWriteOnce
@@ -253,6 +253,11 @@ spec:
       labels:
         app: tmp-tableau-server
     spec:
+      tolerations:
+        - key: "dedicated"
+          value: "tableau"
+          operator: "Equal"
+          effect: "NoSchedule"
       securityContext:
         runAsUser: 999
         fsGroup: 998
@@ -277,25 +282,25 @@ spec:
         - name: LICENSE_KEY
           valueFrom:
             secretKeyRef:
-              name: tableau-server-in-a-container-secrets
+              name: tmp-tableau-single-node
               key: license_key
         - name: TABLEAU_USERNAME
           valueFrom:
             secretKeyRef:
-              name: tableau-server-in-a-container-secrets
+              name: tmp-tableau-single-node
               key: tableau_username
         - name: TABLEAU_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: tableau-server-in-a-container-secrets
+              name: tmp-tableau-single-node
               key: tableau_password
         resources:
           requests:
-            memory: 4Gi
-            cpu: 1
+            memory: 60Gi
+            cpu: 7
           limits:
-            memory: 4Gi
-            cpu: 2
+            memory: 62Gi
+            cpu: 7
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -354,6 +359,11 @@ spec:
       labels:
         app: tmp-tableau-server
     spec:
+      tolerations:
+        - key: "dedicated"
+          value: "tableau"
+          operator: "Equal"
+          effect: "NoSchedule"
       securityContext:
         runAsUser: 999
         fsGroup: 998
@@ -377,17 +387,17 @@ spec:
         - name: LICENSE_KEY
           valueFrom:
             secretKeyRef:
-              name: tableau-server-in-a-container-secrets
+              name: tmp-tableau-single-node
               key: license_key
         - name: BOOTSTRAP_INSTALL
           value: "1"
         resources:
           requests:
-            memory: 4Gi
-            cpu: 1
+            memory: 60Gi
+            cpu: 7
           limits:
-            memory: 4Gi
-            cpu: 2
+            memory: 62Gi
+            cpu: 8
         ports:
         - containerPort: 8080
         imagePullPolicy: IfNotPresent
@@ -422,6 +432,11 @@ spec:
       labels:
         app: tmp-tableau-server
     spec:
+      tolerations:
+        - key: "dedicated"
+          value: "tableau"
+          operator: "Equal"
+          effect: "NoSchedule"
       securityContext:
         runAsUser: 999
         fsGroup: 998
@@ -445,17 +460,17 @@ spec:
         - name: LICENSE_KEY
           valueFrom:
             secretKeyRef:
-              name: tableau-server-in-a-container-secrets
+              name: tmp-tableau-single-node
               key: license_key
         - name: BOOTSTRAP_INSTALL
           value: "1"
         resources:
           requests:
-            memory: 32Gi
-            cpu: 1
+            memory: 60Gi
+            cpu: 7
           limits:
-            memory: 32Gi
-            cpu: 2
+            memory: 62Gi
+            cpu: 7
         ports:
         - containerPort: 8080
         imagePullPolicy: IfNotPresent
