@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   release:
-    name: Release helm charts
+    name: Release helm chart
     runs-on: ubuntu-latest
     outputs:
       chart-names-version-string: ${{ steps.upload.outputs.chart_name_version_str }}
@@ -36,7 +36,7 @@ jobs:
       - name: Install Helm s3 plugin
         run: |
           helm plugin install https://github.com/hypnoglow/helm-s3.git
-      - name: upload chart
+      - name: Upload chart
         id: upload
         run: |
           json_object="{"
@@ -47,7 +47,7 @@ jobs:
           if [[ "$version_exists" == *"${version}"* ]]; then
             echo "Helm charts tableau-server version ${version} already exists, hence skipping..."
           else
-            helm package tableau-server --dependency-update
+            helm package helm-chart --dependency-update
             helm s3 push tableau-server-"${version}".tgz gresb
             rm -f tableau-server-*.tgz
             json_object="${json_object} \"tableau-server\": \"${version}\","
