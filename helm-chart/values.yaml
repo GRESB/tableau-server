@@ -91,8 +91,8 @@ dns:
 
 tableauServer:
   environment: {}
-  licensesSecretName: tableau-server-licenses
-  adminUserSecretName: tableau-server-admin-user
+  licensesSecretNameSuffix: licenses
+  adminUserSecretNameSuffix: admin-user
   dataDir:
     capacity: 100Gi
   bootstrapDir:

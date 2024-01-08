@@ -58,17 +58,17 @@ spec:
             - name: TABLEAU_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  name: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.adminUserSecretNameSuffix }}"
                   key: tableau-username
             - name: TABLEAU_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  name: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.adminUserSecretNameSuffix }}"
                   key: tableau-password
             - name: TSM_REMOTE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  name: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.adminUserSecretNameSuffix }}"
                   key: tsm-password
             - name: ALWAYS_WRITE_BOOTSTRAP_FILE
               value: "1"
@@ -103,7 +103,7 @@ spec:
             name: {{ include "tableau-server.configMap" . }}
         - name: licenses
           secret:
-            secretName: {{ .Values.tableauServer.licensesSecretName }}
+            secretName: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.licensesSecretNameSuffix }}"
         - name: bootstrap
           persistentVolumeClaim:
             claimName: {{ include "tableau-server.bootstrapPvc" . }}
