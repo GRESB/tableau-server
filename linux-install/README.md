@@ -35,6 +35,16 @@ Download two files from the [Tableau Server releases page](http://tableau.com/su
   To install the drivers, follow the instructions provided by Tableau for each of the drivers you download.
   The installation instructions need to be coded in a script.
   That scrip needs to be copied to `customer-files/setup-script`.
+  For JDBC drivers, create a directory structure within `linux-install/drivers`,
+  separating each connector driver in it's own directory.
+  The `setup-script` script will copy all JDBC drivers to the build environment.
+  For other types of drivers,
+  please append the required commands to the `setup-script` script for completing the installation.
+  There is a [GitHub repository on the Tableau organization](https://github.com/tableau/container_image_builder) that
+  contains scripts to download many types of drivers.
+  NB: We tested several AWS Athena drivers
+  and [this (older) version](https://s3.amazonaws.com/athena-downloads/drivers/JDBC/SimbaAthenaJDBC-2.0.32.1000/AthenaJDBC42.jar)
+  seems to be the one that works the best.
 
 At the time of writing, the latest version is 2023.3.0
 
@@ -72,6 +82,7 @@ and add the needed variables to the `add_args_to_dockerfile` function.
 For our needs we are customising the UID and GUIds, so we add 3 new variables to the variables array.
 
 Before:
+
 ```bash
   env_array=( [UNPRIVILEGED_USERNAME]=unprivilegedUsername \
               [UNPRIVILEGED_GROUP_NAME]=unprivilegedGroupName \
@@ -79,6 +90,7 @@ Before:
 ```
 
 After:
+
 ```bash
   env_array=( [UNPRIVILEGED_USERNAME]=unprivilegedUsername \
               [UNPRIVILEGED_GROUP_NAME]=unprivilegedGroupName \
@@ -92,6 +104,7 @@ Then edit the Dockerfile `linux-install/tableau-server-container-setup-tool-${ve
 to define the enw build args.
 
 Before:
+
 ```dockerfile
 ARG eulaAccepted
 ARG installerFile
@@ -102,6 +115,7 @@ ARG unprivilegedGroupName=tableau
 ```
 
 After:
+
 ```dockerfile
 ARG eulaAccepted
 ARG installerFile
@@ -117,6 +131,7 @@ ARG unprivilegedTableauUid=999
 Replace the hardcoded values by the variables.
 
 Before
+
 ```dockerfile
 ENV CONTAINER_ENABLED=1 \
     ...
@@ -129,6 +144,7 @@ ENV CONTAINER_ENABLED=1 \
 ```
 
 After
+
 ```dockerfile
 ENV CONTAINER_ENABLED=1 \
     ...
@@ -144,11 +160,13 @@ Finally,
 add a `chwon` command to the dockerfile `linux-install/tableau-server-container-setup-tool-${version}/image/Dockerfile`.
 
 Before
+
 ```dockerfile
 RUN ${DOCKER_CONFIG}/install-process-manager
 ```
 
 After
+
 ```dockerfile
 RUN ${DOCKER_CONFIG}/install-process-manager \
     && chown -R ${UNPRIVILEGED_USERNAME}:${UNPRIVILEGED_GROUP_NAME} /var/opt/tableau \
@@ -206,7 +224,7 @@ docker push 510016332031.dkr.ecr.eu-central-1.amazonaws.com/tableau-server:defau
 ```bash
 tsm configuration set -k gateway.external_url -v https://analytics.svc.gresb.com
 tsm configuration set -k vizportal.openid.connection_timout -v 10
-tsm configuration set -k vizportal.openid.config_url -v https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_ddPtw8fR5/.well-known/openid-configuration
+tsm configuration set -k vizportal.openid.config_url -v ...
 tsm configuration set -k vizportal.openid.ignore_domain -v false
 tsm configuration set -k vizportal.openid.ignore_jwk -v false
 tsm configuration set -k vizportal.openid.iframed_idp.enabled -v false
