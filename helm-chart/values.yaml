@@ -90,7 +90,6 @@ dns:
   clusterDomain: cluster.local
 
 tableauServer:
-  environment: {}
   licensesSecretNameSuffix: licenses
   adminUserSecretNameSuffix: admin-user
   dataDir:
