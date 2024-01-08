@@ -207,16 +207,15 @@ yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
 
 cd /tableau-server-install/tableau-server-container-setup-tool-${version}
-./build-image --accepteula -i ../tableau-server-${version//./-}.x86_64.rpm -o 510016332031.dkr.ecr.eu-central-1.amazonaws.com/tableau-server:default-dev -e ../build-environment
+./build-image --accepteula -i ../tableau-server-${version//./-}.x86_64.rpm -o ghcr.io/gresb/tableau-server:latest -e ../build-environment
 
 # If you are not building on linux and have started a build container
 exit
 
 # Push the image we just built, without tagging it with a specific version
 # This command requires login to ECR (and can be executed outside the build container started with `docker run`)
-AWS_PROFILE=gresb-svc-developer aws ecr get-login-password --region eu-central-1 \
-  | docker login 510016332031.dkr.ecr.eu-central-1.amazonaws.com --username AWS  --password-stdin
-docker push 510016332031.dkr.ecr.eu-central-1.amazonaws.com/tableau-server:default-dev
+docker login ...
+docker push ghcr.io/gresb/tableau-server:latest
 ```
 
 #### OIDC
