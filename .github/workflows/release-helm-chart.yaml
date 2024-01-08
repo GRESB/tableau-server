@@ -1,0 +1,56 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  aws_region: eu-central-1
+  helm_chart_repo: gresb-helm-charts
+
+permissions:
+  id-token: write # Required for requesting the JWT
+  contents: read  # Required for actions/checkout
+
+jobs:
+  release:
+    name: Release helm charts
+    runs-on: ubuntu-latest
+    outputs:
+      chart-names-version-string: ${{ steps.upload.outputs.chart_name_version_str }}
+      charts-released: ${{ steps.upload.outputs.charts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.aws_region }}
+          role-to-assume: arn:aws:iam::510016332031:role/github-service-role/helm-charts-service-role
+          role-session-name: github-oidc-s3-helm-registry
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Helm s3 plugin
+        run: |
+          helm plugin install https://github.com/hypnoglow/helm-s3.git
+      - name: upload chart
+        id: upload
+        run: |
+          json_object="{"
+          helm repo add gresb s3://${{ env.helm_chart_repo }}/stable
+          helm repo update gresb
+          version=$(yq -r '.version' helm-chart/Chart.yaml)
+          version_exists=$(helm search repo gresb/tableau-server --version "${version}")
+          if [[ "$version_exists" == *"${version}"* ]]; then
+            echo "Helm charts tableau-server version ${version} already exists, hence skipping..."
+          else
+            helm package tableau-server --dependency-update
+            helm s3 push tableau-server-"${version}".tgz gresb
+            rm -f tableau-server-*.tgz
+            json_object="${json_object} \"tableau-server\": \"${version}\","
+          fi
+          json_object="${json_object%,} }"
+          echo "charts=${json_object}" >> ${GITHUB_OUTPUT}

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Install MySQL driver
+yum install /docker/customer-files/drivers/mysql-connector-odbc-*.*.rpm
+
+# Create JDBC driver directory
+mkdir -p /opt/tableau/tableau_driver/jdbc
+
+# Install PostgresSQL driver
+cp /docker/customer-files/drivers/postgresql-*.jar /opt/tableau/tableau_driver/jdbc
+
+# Install Amazon Athena driver
+cp /docker/customer-files/drivers/athena-jdbc-*.jar /opt/tableau/tableau_driver/jdbc
+
+chmod 755 /opt/tableau/tableau_driver/jdbc/*
+
+# Missing package
+yum install -y bc

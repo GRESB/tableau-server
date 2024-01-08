@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+say() {
+  echo
+  echo "==> ${1}"
+  echo
+}
+
+configure_node1() {
+  say "Configure node 1"
+
+  local node=node1
+
+  # Processes ordered according to docs/images/3-node-topology.png diagram
+  tsm topology set-process -n "${node}" -pr gateway -c 1
+  tsm topology set-process -n "${node}" -pr vizportal  -c 2
+  tsm topology set-process -n "${node}" -pr vizqlserver -c 2
+  tsm topology set-process -n "${node}" -pr cacheserver -c 2
+  tsm topology set-process -n "${node}" -pr backgrounder -c 2
+  tsm topology set-process -n "${node}" -pr dataserver -c 2
+  # Tableau Prep Conductor process is managed automatically
+  # tsm topology set-process -n "${node}" -pr flowprocessor -c 1
+  tsm topology set-process -n "${node}" -pr floweditor -c 0
+  tsm topology set-process -n "${node}" -pr flowminerva -c 0
+  # Ask Data process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+  tsm topology set-process -n "${node}" -pr metrics -c 1
+  tsm topology set-process -n "${node}" -pr activemqserver -c 1
+  tsm topology set-process -n "${node}" -pr tdsservice -c 1
+  tsm topology set-process -n "${node}" -pr tdsnativeservice -c 1
+  tsm topology set-process -n "${node}" -pr contentexploration -c 1
+  tsm topology set-process -n "${node}" -pr collections -c 1
+  # Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Non-Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Data Engine process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr filestore -c 1
+  tsm topology set-process -n "${node}" -pr pgsql -c 1
+  # TSM Controller / Administration Controller process cannot be manually configured
+  # License Server / License Manager process cannot be manually configured
+  # Activation Service process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr clustercontroller -c 1
+  # Coordination Service process cannot be set with set-process
+  tsm topology set-process -n "${node}" -pr clientfileservice -c 1
+}
+
+configure_node2() {
+  say "Configure node 2"
+
+  local node=node2
+
+  # Processes ordered according to docs/images/3-node-topology.png diagram
+  tsm topology set-process -n "${node}" -pr gateway -c 1
+  tsm topology set-process -n "${node}" -pr vizportal  -c 2
+  tsm topology set-process -n "${node}" -pr vizqlserver -c 2
+  tsm topology set-process -n "${node}" -pr cacheserver -c 2
+  tsm topology set-process -n "${node}" -pr backgrounder -c 2
+  tsm topology set-process -n "${node}" -pr dataserver -c 2
+  # Tableau Prep Conductor process is managed automatically
+  # tsm topology set-process -n "${node}" -pr flowprocessor -c 0
+  tsm topology set-process -n "${node}" -pr floweditor -c 1
+  tsm topology set-process -n "${node}" -pr flowminerva -c 1
+  # Ask Data process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+  tsm topology set-process -n "${node}" -pr metrics -c 1
+  tsm topology set-process -n "${node}" -pr activemqserver -c 1
+  tsm topology set-process -n "${node}" -pr tdsservice -c 0
+  tsm topology set-process -n "${node}" -pr tdsnativeservice -c 1
+  tsm topology set-process -n "${node}" -pr contentexploration -c 1
+  tsm topology set-process -n "${node}" -pr collections -c 1
+  # Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Non-Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Data Engine process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr filestore -c 1
+  tsm topology set-process -n "${node}" -pr pgsql -c 1
+  tsm topology set-process -n "${node}" -pr clustercontroller -c 1
+  # Coordination Service process cannot be set with set-process
+  tsm topology set-process -n "${node}" -pr clientfileservice -c 1
+}
+
+configure_node3() {
+  say "Configure node 3"
+
+  local node=node3
+
+  # Processes ordered according to docs/images/3-node-topology.png diagram
+  tsm topology set-process -n "${node}" -pr gateway -c 1
+  tsm topology set-process -n "${node}" -pr vizportal  -c 2
+  tsm topology set-process -n "${node}" -pr vizqlserver -c 2
+  tsm topology set-process -n "${node}" -pr cacheserver -c 2
+  tsm topology set-process -n "${node}" -pr backgrounder -c 2
+  tsm topology set-process -n "${node}" -pr dataserver -c 2
+  # Tableau Prep Conductor process is managed automatically
+  # tsm topology set-process -n "${node}" -pr flowprocessor -c 1
+  tsm topology set-process -n "${node}" -pr floweditor -c 0
+  tsm topology set-process -n "${node}" -pr flowminerva -c 0
+  # Ask Data process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+  tsm topology set-process -n "${node}" -pr metrics -c 1
+  tsm topology set-process -n "${node}" -pr activemqserver -c 0
+  tsm topology set-process -n "${node}" -pr tdsservice -c 0
+  tsm topology set-process -n "${node}" -pr tdsnativeservice -c 1
+  tsm topology set-process -n "${node}" -pr contentexploration -c 1
+  tsm topology set-process -n "${node}" -pr collections -c 1
+  # Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Non-Interactive Microservice Container process is managed automatically with vizportal and backgrounder
+  # Data Engine process cannot be manually configured
+  tsm topology set-process -n "${node}" -pr filestore -c 1
+  tsm topology set-process -n "${node}" -pr pgsql -c 0
+  tsm topology set-process -n "${node}" -pr clustercontroller -c 1
+  # Coordination Service process cannot be set with set-process
+  tsm topology set-process -n "${node}" -pr clientfileservice -c 1
+}
+
+wait_for_nodes() {
+  local nodes
+
+  nodes="$( tsm topology list-nodes )"
+  # Loop until tsm topology list-nodes prints al 3 nodes
+  while [[ "${nodes}" != *"node1"* || "${nodes}" != *"node2"* || "${nodes}" != *"node3"* ]]; do
+    say "Waiting for worker nodes to be ready, current node list is: ${nodes}"
+    sleep 5
+    nodes="$( tsm topology list-nodes )"
+  done
+  say "All nodes are ready, current node list is: ${nodes}"
+}
+
+set -e
+
+wait_for_nodes
+
+say "Start cluster controller on node2 and node 3"
+tsm topology set-process -n node2 -pr clustercontroller -c 1
+tsm topology set-process -n node3 -pr clustercontroller -c 1
+tsm pending-changes apply --ignore-warnings --ignore-prompt
+
+say "Deploying cluster coordination service"
+tsm stop
+tsm topology deploy-coordination-service -n node1,node2,node3 --ignore-prompt
+tsm start
+
+
+configure_node1
+configure_node2
+configure_node3
+
+say "Apply node configuration"
+tsm pending-changes apply --ignore-prompt

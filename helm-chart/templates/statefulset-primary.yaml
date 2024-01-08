@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "tableau-server.fullname" . }}-primary
+  labels:
+    {{- include "tableau-server.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ include "tableau-server.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "tableau-server.selectorLabels" . | nindent 6 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.tableauServer.dataDir.capacity }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "tableau-server.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "tableau-server.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['statefulset.kubernetes.io/pod-name']
+            - name: LICENSE_KEY_FILE
+              value: /docker/license/$(POD_NAME)
+            - name: TABLEAU_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  key: tableau-username
+            - name: TABLEAU_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  key: tableau-password
+            - name: TSM_REMOTE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tableauServer.adminUserSecretName }}
+                  key: tsm-password
+            - name: ALWAYS_WRITE_BOOTSTRAP_FILE
+              value: "1"
+            - name: WAIT_FOR_BOOTSTRAP_FILE
+              value: "0"
+          {{- with .Values.tableauServer.primary.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tableauServer.primary.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: configuration
+              mountPath: /docker/config/config.json
+              subPath: config.json
+            - name: data
+              mountPath: /var/opt/tableau
+            - name: licenses
+              mountPath: /docker/license
+            - name: bootstrap
+              mountPath: /docker/config/bootstrap
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: configuration
+          configMap:
+            name: {{ include "tableau-server.configMap" . }}
+        - name: licenses
+          secret:
+            secretName: {{ .Values.tableauServer.licensesSecretName }}
+        - name: bootstrap
+          persistentVolumeClaim:
+            claimName: {{ include "tableau-server.bootstrapPvc" . }}
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      dnsConfig:
+        searches:
+          - "{{ include "tableau-server.fullname" . }}.{{ .Release.Namespace }}.svc.{{ .Values.dns.clusterDomain }}"
+          - "{{ .Release.Namespace }}.svc.{{ .Values.dns.clusterDomain }}"
+          - "svc.{{ .Values.dns.clusterDomain }}"
+        options:
+          - name: ndots
+            value: "5"
