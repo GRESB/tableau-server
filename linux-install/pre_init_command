@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -e
+
+#useradd --system --comment "Tableau Server Management" -u "${UNPRIVILEGED_TABLEAU_UID}" --shell /bin/bash --create-home --home-dir "${user_home}" -g "${UNPRIVILEGED_GROUP_NAME}" "${UNPRIVILEGED_USERNAME}"
