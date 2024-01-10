@@ -223,7 +223,9 @@ helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.pr
 
 ### Other
 
-DB user access was too restrictive
+DB user access was too restrictive.
+Everytime the `tsm topology set-process` is used to move the Repository process (aka pgsql),
+the file bellow needs to be updated.
 
 /var/opt/tableau/tableau_server/data/tabsvc/config/pgsql_0.20233.23.1017.0948/pg_hba.conf
 
@@ -257,7 +259,7 @@ DB user access was too restrictive
 #  host    all         rails           10.1.102.133/32          md5
 #  host    all         tblwgadmin     10.1.102.133/32          md5
 
-# Open
+# Open By us
 host    all         datacatdbowner           10.1.100.0/22          md5
 host    all         tbladminviews           10.1.100.0/22          md5
 host    all         tblserveradminviews    10.1.100.0/22          md5
@@ -285,4 +287,5 @@ host    all         nopiireaderuser1        10.1.100.0/22          md5
 host    all         insightsuser1    10.1.100.0/22          md5
 host    all         rails           10.1.100.0/22          md5
 host    all         tblwgadmin     10.1.100.0/22          md5
+host    replication tblwgadmin      10.1.100.0/22          md5
 ```
