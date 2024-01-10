@@ -15,7 +15,8 @@ configure_primary() {
   tsm topology set-process -n "${node}" -pr gateway -c 1
   tsm topology set-process -n "${node}" -pr vizportal  -c 0
   tsm topology set-process -n "${node}" -pr vizqlserver -c 0
-  tsm topology set-process -n "${node}" -pr cacheserver -c 0
+  # cacheserver is not licensed; the recommendation is to run as many as possible up to 6
+  tsm topology set-process -n "${node}" -pr cacheserver -c 1
   tsm topology set-process -n "${node}" -pr backgrounder -c 0
   tsm topology set-process -n "${node}" -pr dataserver -c 0
   # Tableau Prep Conductor process is managed automatically
@@ -23,8 +24,11 @@ configure_primary() {
   tsm topology set-process -n "${node}" -pr floweditor -c 0
   tsm topology set-process -n "${node}" -pr flowminerva -c 0
   # Ask Data process cannot be manually configured
-  tsm topology set-process -n "${node}" -pr indexandsearchserver -c 0
-  tsm topology set-process -n "${node}" -pr metrics -c 0
+  # Note: Index and search Service isn't licensed, so we can run it on all nodes.
+  #       TSM warns that it should be running on all 3 nodes
+  tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+  # metrics is not licensed, recomented to run one per node
+  tsm topology set-process -n "${node}" -pr metrics -c 1
   tsm topology set-process -n "${node}" -pr activemqserver -c 0
   tsm topology set-process -n "${node}" -pr tdsservice -c 0
   tsm topology set-process -n "${node}" -pr tdsnativeservice -c 0
@@ -60,9 +64,9 @@ configure_worker() {
   # Tableau Prep Conductor process is managed automatically
   # tsm topology set-process -n "${node}" -pr flowprocessor -c 0
   tsm topology set-process -n "${node}" -pr floweditor -c 1
-  tsm topology set-process -n "${node}" -pr flowminerva -c 1
   # Ask Data process cannot be manually configured
   tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+  tsm topology set-process -n "${node}" -pr flowminerva -c 1
   tsm topology set-process -n "${node}" -pr metrics -c 1
   tsm topology set-process -n "${node}" -pr activemqserver -c 1
   tsm topology set-process -n "${node}" -pr tdsservice -c 1
@@ -77,6 +81,7 @@ configure_worker() {
   tsm topology set-process -n "${node}" -pr clustercontroller -c 1
   # Coordination Service process cannot be set with set-process
   tsm topology set-process -n "${node}" -pr clientfileservice -c 1
+
 }
 
 wait_for_nodes() {
@@ -99,6 +104,7 @@ wait_for_nodes
 say "Start cluster controller on node2 and node 3"
 tsm topology set-process -n node2 -pr clustercontroller -c 1
 tsm topology set-process -n node3 -pr clustercontroller -c 1
+say "Apply changes"
 tsm pending-changes apply --ignore-warnings --ignore-prompt
 
 say "Deploying cluster coordination service"
@@ -108,19 +114,23 @@ tsm start
 
 say "Add Repository to node2 (before removing it from node 1)"
 tsm topology set-process -n node2 -pr pgsql -c 1
-tsm pending-changes apply --ignore-prompt
+say "Add Index and Search Server to node2 and node3 (to remove warnings)"
+tsm topology set-process -n node2 -pr indexandsearchserver -c 1
+tsm topology set-process -n node3 -pr indexandsearchserver -c 1
+say "Apply changes"
+tsm pending-changes apply --ignore-warnings --ignore-prompt
 
 configure_worker node2
 say "Apply changes"
-tsm pending-changes apply --ignore-prompt
+tsm pending-changes apply --ignore-warnings --ignore-prompt
 
 configure_primary
 say "Apply changes"
-tsm pending-changes apply --ignore-prompt
+tsm pending-changes apply --ignore-warnings --ignore-prompt
 
 configure_worker node3
 say "Apply changes"
-tsm pending-changes apply --ignore-prompt
+tsm pending-changes apply --ignore-warnings --ignore-prompt
 
 # Can't disable filestore
 # Error message: Resource Conflict: Cannot remove filestore from node 'node1' without decommissioning hyper.
@@ -130,4 +140,4 @@ say "Decommissioning and disable filestore on node1"
 tsm topology filestore decommission -n node1 --ignore-prompt
 tsm topology set-process -n node1 -pr filestore -c 0
 say "Apply changes"
-tsm pending-changes apply --ignore-prompt
+tsm pending-changes apply --ignore-warnings --ignore-prompt
