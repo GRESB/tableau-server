@@ -223,6 +223,8 @@ helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.pr
 
 ### Other
 
+#### DB access
+
 DB user access was too restrictive.
 Everytime the `tsm topology set-process` is used to move the Repository process (aka pgsql),
 the file bellow needs to be updated.
@@ -289,3 +291,13 @@ host    all         rails           10.1.100.0/22          md5
 host    all         tblwgadmin     10.1.100.0/22          md5
 host    replication tblwgadmin      10.1.100.0/22          md5
 ```
+
+#### Container image upgrade
+
+If we upgrade the container image at once via a `helm upgrade ...` command,
+that change is applied to both the primary and worker stateful sets at the same time.
+That typically results in downtime.
+
+A better way to do that is to manually update the image on the primary stateful set,
+then once the primary node is completely functional, update the worker stateful set.
+This way there will always be a pod read to serve traffic.

@@ -2,6 +2,9 @@
 
 # Install MySQL driver
 yum install -y /docker/customer-files/drivers/mysql*.rpm
+yum -y install mysql-connector-odbc-8.0.32-1.el8
+grep -n -F '[MySQL ODBC 8.0 ANSI Driver]' /etc/odbcinst.ini
+grep -n -F '[MySQL ODBC 8.0 Unicode Driver]' /etc/odbcinst.ini
 
 # Create JDBC driver directory
 mkdir -p /opt/tableau/tableau_driver/jdbc
