@@ -58,15 +58,13 @@ spec:
                 secretKeyRef:
                   name: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.adminUserSecretNameSuffix }}"
                   key: tsm-password
-          {{- if .Values.tableauServer.worker.probe.enabled }}
           {{- with .Values.tableauServer.worker.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.tableauServer.worker.livenessProbe }}
+          {{- with .Values.tableauServer.worker.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

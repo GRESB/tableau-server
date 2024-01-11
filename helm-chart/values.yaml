@@ -126,8 +126,5 @@ tableauServer:
       periodSeconds: 30
       timeoutSeconds: 20
   worker:
-    probe:
-      # disable pod probes for workers for initial cluster bootstrap
-      enabled: false
     livenessProbe: {}
     readinessProbe: {}
