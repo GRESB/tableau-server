@@ -188,6 +188,9 @@ cp -rf drivers tableau-server-container-setup-tool-${version}/customer-files/
 # Copy the driver setup script
 cp -f setup-script tableau-server-container-setup-tool-${version}/customer-files
 
+# Copy the backup script
+cp -f backup.sh tableau-server-container-setup-tool-${version}/customer-files
+
 # If you are running on a platform different from linux/amd64
 # you need to set the platform for docker build to use
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
