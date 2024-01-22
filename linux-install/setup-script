@@ -15,5 +15,16 @@ cp -rf /docker/customer-files/drivers/jdbc /opt/tableau/tableau_driver
 chmod -R 755 /opt/tableau/tableau_driver/jdbc
 chown -R tableau /opt/tableau/tableau_driver
 
-# Missing package
+# Missing package used by Tableau Server scripts
 yum install -y bc
+
+# AWS Cli
+yum install -y less unzip
+mkdir -p /tmp/setup
+cd /tmp/setup
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install
+cd -
+rm -rf /tmp/setup
+yum remove -y unzip

@@ -43,7 +43,7 @@ since the underlying StatefulSet would not schedule the second until the first i
 To install Tableau Server without the pod probes for the workers, we manipulate a helm value `worker.probe.enabled`.
 
 ```bash
-helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.probe.enabled=false
+helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.probes.enabled=false
 ```
 
 After the helm installation, there should be three running pods,
