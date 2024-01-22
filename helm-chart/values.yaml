@@ -128,6 +128,6 @@ tableauServer:
   worker:
     probes:
       # disable pod probes for workers for initial cluster bootstrap
-      enabled: enable
+      enabled: true
     livenessProbe: {}
     readinessProbe: {}
