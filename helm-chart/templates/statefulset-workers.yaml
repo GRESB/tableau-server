@@ -52,7 +52,7 @@ spec:
             - name: LICENSE_KEY
               value: "not-used"
             - name: BOOTSTRAP_INSTALL
-              value: "1"
+              value: {{ if .Values.tableauServer.worker.bootstrap }}"1"{{ else }}"0"{{ end }}
             - name: TSM_REMOTE_PASSWORD
               valueFrom:
                 secretKeyRef:

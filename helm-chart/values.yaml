@@ -126,8 +126,12 @@ tableauServer:
       periodSeconds: 30
       timeoutSeconds: 20
   worker:
+    # disable bootstrapping when the cluster is already bootstrapped
+    # NB: this is useful when re-installing over an existing state
+    bootstrap: true
     probes:
       # disable pod probes for workers for initial cluster bootstrap
+      # NB: this is useful when installing for the first time, or re-installing
       enabled: true
     livenessProbe: {}
     readinessProbe: {}
