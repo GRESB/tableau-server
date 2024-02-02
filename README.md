@@ -229,68 +229,28 @@ DB user access was too restrictive.
 Everytime the `tsm topology set-process` is used to move the Repository process (aka pgsql),
 the file bellow needs to be updated.
 
-/var/opt/tableau/tableau_server/data/tabsvc/config/pgsql_0.20233.23.1017.0948/pg_hba.conf
-
-```bash
-# Was
-#  host    all         datacatdbowner           10.1.101.229/32          md5
-#  host    all         tbladminviews           10.1.101.229/32          md5
-#  host    all         tblserveradminviews    10.1.101.229/32          md5
-#  host    all         datafetcheruser1        10.1.101.229/32          md5
-#  host    all         analyseruser1           10.1.101.229/32          md5
-#  host    all         nopiireaderuser1        10.1.101.229/32          md5
-#  host    all         insightsuser1    10.1.101.229/32          md5
-#  host    all         rails           10.1.101.229/32          md5
-#  host    all         tblwgadmin     10.1.101.229/32          md5
-#  host    all         datacatdbowner           10.1.102.159/32          md5
-#  host    all         tbladminviews           10.1.102.159/32          md5
-#  host    all         tblserveradminviews    10.1.102.159/32          md5
-#  host    all         datafetcheruser1        10.1.102.159/32          md5
-#  host    all         analyseruser1           10.1.102.159/32          md5
-#  host    all         nopiireaderuser1        10.1.102.159/32          md5
-#  host    all         insightsuser1    10.1.102.159/32          md5
-#  host    all         rails           10.1.102.159/32          md5
-#  host    all         tblwgadmin     10.1.102.159/32          md5
-#  host    all         datacatdbowner           10.1.102.133/32          md5
-#  host    all         tbladminviews           10.1.102.133/32          md5
-#  host    all         tblserveradminviews    10.1.102.133/32          md5
-#  host    all         datafetcheruser1        10.1.102.133/32          md5
-#  host    all         analyseruser1           10.1.102.133/32          md5
-#  host    all         nopiireaderuser1        10.1.102.133/32          md5
-#  host    all         insightsuser1    10.1.102.133/32          md5
-#  host    all         rails           10.1.102.133/32          md5
-#  host    all         tblwgadmin     10.1.102.133/32          md5
-
-# Open By us
-host    all         datacatdbowner           10.1.100.0/22          md5
-host    all         tbladminviews           10.1.100.0/22          md5
-host    all         tblserveradminviews    10.1.100.0/22          md5
-host    all         datafetcheruser1        10.1.100.0/22          md5
-host    all         analyseruser1           10.1.100.0/22          md5
-host    all         nopiireaderuser1        10.1.100.0/22          md5
-host    all         insightsuser1    10.1.100.0/22          md5
-host    all         rails           10.1.100.0/22          md5
-host    all         tblwgadmin     10.1.100.0/22          md5
-host    all         datacatdbowner           10.1.100.0/22          md5
-host    all         tbladminviews           10.1.100.0/22          md5
-host    all         tblserveradminviews    10.1.100.0/22          md5
-host    all         datafetcheruser1        10.1.100.0/22          md5
-host    all         analyseruser1           10.1.100.0/22          md5
-host    all         nopiireaderuser1        10.1.100.0/22          md5
-host    all         insightsuser1    10.1.100.0/22          md5
-host    all         rails           10.1.100.0/22          md5
-host    all         tblwgadmin     10.1.100.0/22          md5
-host    all         datacatdbowner           10.1.100.0/22          md5
-host    all         tbladminviews           10.1.100.0/22          md5
-host    all         tblserveradminviews    10.1.100.0/22          md5
-host    all         datafetcheruser1        10.1.100.0/22          md5
-host    all         analyseruser1           10.1.100.0/22          md5
-host    all         nopiireaderuser1        10.1.100.0/22          md5
-host    all         insightsuser1    10.1.100.0/22          md5
-host    all         rails           10.1.100.0/22          md5
-host    all         tblwgadmin     10.1.100.0/22          md5
-host    replication tblwgadmin      10.1.100.0/22          md5
 ```
+/var/opt/tableau/tableau_server/data/tabsvc/config/pgsql_0.20233.23.1017.0948/pg_hba.conf
+```
+
+During database maintenance, any node can spin up new applications that use the default `pg_hba.conf`.
+Therefore, those other files also need to be patched.
+However, these files are dynamically created, on the fly when `tsm jobs` execute.
+
+With a combination of crond, supervisord and bash scripting we implemented a script that gets installed in the nodes,
+that automatically patches all the `pg_hba.conf` under the data directory of Tableau Server.
+That script is executed every minute by `crond`.
+
+If provided with a set of CIDRs, the script will configure DB access from all those CIDRs.
+The script copies the rules added by the default configuration of Tableau Server,
+which restrict to the initial node pod IPs, but replaces the IPs by the values of the CIDRs.
+This way we can allow access from anywhere in our pod subnets.
+If no CIDRs are provided, the script will copy the same rules,
+but will allow access from `0.0.0.0/0`, basically anywhere.
+
+We highly recommend setting some CIDRs,
+and they can be set in file [custom-env](linux-install/customer-files) assigned to `K8S_CIDRS`.
+When setting multiple CIDRs, separate them by spaces.
 
 #### Container image upgrade
 

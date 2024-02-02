@@ -1,0 +1,2 @@
+* * * * *       find /var/opt/tableau/tableau_server/data/tabsvc -type f -iname 'pg_hba.conf' -exec su - tableau -c "/usr/bin/pgsql-auth.sh \"${K8S_CIDRS}\" {} >> /var/log/pgsql-auth.log" \;
+0 0 */3 * *     rm -f /var/log/pgsql-auth.log

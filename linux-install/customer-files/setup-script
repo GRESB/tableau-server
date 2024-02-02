@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -e
+
 # Install MySQL driver
-yum install -y /docker/customer-files/drivers/mysql*.rpm
+yum install -y "${DOCKER_CONFIG}"/customer-files/drivers/mysql*.rpm
 yum -y install mysql-connector-odbc-8.0.32-1.el8
 grep -n -F '[MySQL ODBC 8.0 ANSI Driver]' /etc/odbcinst.ini
 grep -n -F '[MySQL ODBC 8.0 Unicode Driver]' /etc/odbcinst.ini
@@ -10,10 +12,10 @@ grep -n -F '[MySQL ODBC 8.0 Unicode Driver]' /etc/odbcinst.ini
 mkdir -p /opt/tableau/tableau_driver/jdbc
 
 # Install PostgresSQL driver
-cp -rf /docker/customer-files/drivers/jdbc /opt/tableau/tableau_driver
+cp -rf "${DOCKER_CONFIG}/customer-files/drivers/jdbc" /opt/tableau/tableau_driver
 
 chmod -R 755 /opt/tableau/tableau_driver/jdbc
-chown -R tableau /opt/tableau/tableau_driver
+chown -R "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /opt/tableau/tableau_driver
 
 # Missing package used by Tableau Server scripts
 yum install -y bc
@@ -29,5 +31,18 @@ cd -
 rm -rf /tmp/setup
 yum remove -y unzip
 
-# Crontab (used to run scripts to maintain a configured tableau server)
-yum install -y cronie
+# Set custom environment variables for crond
+cat "${DOCKER_CONFIG}/customer-files/custom-env" >> /etc/environment
+
+# Crontab and sudo (used to run scripts to maintain a well-configured tableau server)
+yum install -y cronie sudo
+echo "tableau ALL=NOPASSWD:/usr/sbin/crond" >> /etc/sudoers
+cp -f "${DOCKER_CONFIG}/customer-files/pgsql-auth.sh" /usr/bin
+touch /var/log/cron.log
+chown "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/log/cron.log
+touch /var/log/pgsql-auth.log
+chown "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/log/pgsql-auth.log
+mkdir -p /var/opt/tableau/tableau_server/supervisord/units/
+chown -R "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/opt/tableau
+cp "${DOCKER_CONFIG}/customer-files/crond.conf" /var/opt/tableau/tableau_server/supervisord/units/
+crontab "${DOCKER_CONFIG}/customer-files/crontab"
