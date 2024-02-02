@@ -18,7 +18,7 @@ chown -R tableau /opt/tableau/tableau_driver
 # Missing package used by Tableau Server scripts
 yum install -y bc
 
-# AWS Cli
+# AWS Cli (used to upload and download backups)
 yum install -y less unzip
 mkdir -p /tmp/setup
 cd /tmp/setup
@@ -28,3 +28,6 @@ unzip awscliv2.zip
 cd -
 rm -rf /tmp/setup
 yum remove -y unzip
+
+# Crontab (used to run scripts to maintain a configured tableau server)
+yum install -y cronie

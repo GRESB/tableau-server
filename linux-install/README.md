@@ -179,17 +179,8 @@ RUN ${DOCKER_CONFIG}/install-process-manager \
 ```bash
 cd linux-install
 
-# Copy the pre and post scripts to the container build tool directory
-cp pre_init_command post_init_command tableau-server-container-setup-tool-${version}/customer-files
-
-# Copy the drivers to the container build tool directory
-cp -rf drivers tableau-server-container-setup-tool-${version}/customer-files/
-
-# Copy the driver setup script
-cp -f setup-script tableau-server-container-setup-tool-${version}/customer-files
-
-# Copy the backup script
-cp -f backup.sh tableau-server-container-setup-tool-${version}/customer-files
+# Copy files to customer-files
+cp -f customer-files/* tableau-server-container-setup-tool-${version}/customer-files/
 
 # If you are running on a platform different from linux/amd64
 # you need to set the platform for docker build to use
