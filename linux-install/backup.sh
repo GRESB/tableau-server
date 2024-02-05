@@ -26,6 +26,7 @@ tsm settings export -f "${settings_backup}"
 
 content_backup_target_dir="/var/opt/tableau/tableau_server/data/tabsvc/files/backups"
 content_backup_file="backup.tsbak"
+rm -f "${content_backup_target_dir}/${content_backup_file}"
 say "Exporting content to ${content_backup_file}"
 tsm maintenance backup -f "${content_backup_file}" --multithreaded
 mv "${content_backup_target_dir}/${content_backup_file}" "${backup_dir}"
