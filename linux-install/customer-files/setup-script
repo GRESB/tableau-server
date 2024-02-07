@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 # Install MySQL driver
 yum install -y "${DOCKER_CONFIG}"/customer-files/drivers/mysql*.rpm
@@ -42,7 +42,7 @@ touch /var/log/cron.log
 chown "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/log/cron.log
 touch /var/log/pgsql-auth.log
 chown "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/log/pgsql-auth.log
-mkdir -p /var/opt/tableau/tableau_server/supervisord/units/
-chown -R "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/opt/tableau
-cp "${DOCKER_CONFIG}/customer-files/crond.conf" /var/opt/tableau/tableau_server/supervisord/units/
-crontab "${DOCKER_CONFIG}/customer-files/crontab"
+#mkdir -p /var/opt/tableau/tableau_server/supervisord/units/
+#chown -R "${UNPRIVILEGED_TABLEAU_UID}:${UNPRIVILEGED_TABLEAU_GID}" /var/opt/tableau
+#cp "${DOCKER_CONFIG}/customer-files/crond.conf" /var/opt/tableau/tableau_server/supervisord/units/
+#crontab "${DOCKER_CONFIG}/customer-files/crontab"

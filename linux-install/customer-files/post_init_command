@@ -48,8 +48,6 @@ configure_primary() {
   tsm topology set-process -n "${node}" -pr clientfileservice -c 1
 }
 
-
-
 configure_worker() {
   local node=${1}
 
@@ -90,11 +88,11 @@ wait_for_nodes() {
   nodes="$( tsm topology list-nodes )"
   # Loop until tsm topology list-nodes prints al 3 nodes
   while [[ "${nodes}" != *"node1"* || "${nodes}" != *"node2"* || "${nodes}" != *"node3"* ]]; do
-    say "Waiting for worker nodes to be ready, current node list is: ${nodes}"
+    say "Waiting for worker nodes to be ready, the current node list is: \n${nodes}"
     sleep 5
     nodes="$( tsm topology list-nodes )"
   done
-  say "All nodes are ready, current node list is: ${nodes}"
+  say "All nodes are ready, current node list is: \n${nodes}"
 }
 
 set -e
@@ -131,3 +129,10 @@ tsm pending-changes apply --ignore-warnings --ignore-prompt
 configure_worker node3
 say "Apply changes"
 tsm pending-changes apply --ignore-warnings --ignore-prompt
+
+#say "Setup crond to automate configuration management"
+#supervisord_dir="/var/opt/tableau/tableau_server/supervisord"
+#crontab "${DOCKER_CONFIG}/customer-files/crontab"
+#cp "${DOCKER_CONFIG}/customer-files/crond.conf" "${supervisord_dir}/units/"
+#supervisorctl -s "unix://${supervisord_dir}/supervisord.sock" reread
+#supervisorctl -s "unix://${supervisord_dir}/supervisord.sock" add crond

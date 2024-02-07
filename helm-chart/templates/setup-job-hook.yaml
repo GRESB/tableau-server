@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "tableau-server.fullname" . | quote }}
+  labels:
+    {{- include "tableau-server.labels" . | nindent 4 }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ include "tableau-server.fullname" . | quote }}
+      labels:
+        {{- include "tableau-server.labels" . | nindent 4 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: post-install-job-primary-0
+          image: "bitnami/kubectl:latest"
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - "tableau-server-primary-0"
+            - "/bin/bash"
+            - "-c"
+            - "export supervisord_dir=/var/opt/tableau/tableau_server/supervisord && crontab \"${DOCKER_CONFIG}/customer-files/crontab\" && cp \"${DOCKER_CONFIG}/customer-files/crond.conf\" \"${supervisord_dir}/units/\" && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" reread && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" add crond"
+        - name: post-install-job-worker-0
+          image: "bitnami/kubectl:latest"
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - "tableau-server-worker-0"
+            - "/bin/bash"
+            - "-c"
+            - "export supervisord_dir=/var/opt/tableau/tableau_server/supervisord && crontab \"${DOCKER_CONFIG}/customer-files/crontab\" && cp \"${DOCKER_CONFIG}/customer-files/crond.conf\" \"${supervisord_dir}/units/\" && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" reread && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" add crond"
+        - name: post-install-job-worker-1
+          image: "bitnami/kubectl:latest"
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - "tableau-server-worker-1"
+            - "/bin/bash"
+            - "-c"
+            - "export supervisord_dir=/var/opt/tableau/tableau_server/supervisord && crontab \"${DOCKER_CONFIG}/customer-files/crontab\" && cp \"${DOCKER_CONFIG}/customer-files/crond.conf\" \"${supervisord_dir}/units/\" && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" reread && supervisorctl -s \"unix://${supervisord_dir}/supervisord.sock\" add crond"
