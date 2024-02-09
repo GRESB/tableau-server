@@ -81,3 +81,59 @@ Tableau Server shared PCV name
 {{- define "tableau-server.bootstrapPvc" -}}
 {{ include "tableau-server.fullname" . }}-bootstrap
 {{- end }}
+
+{{/*
+Name of the Scripts ConfigMap
+*/}}
+{{- define "tableau-server.scriptsConfigMapName" -}}
+{{ include "tableau-server.fullname" . }}-scripts
+{{- end }}
+
+{{/*
+Name of the directory where scripts are provisioned
+*/}}
+{{- define "tableau-server.scriptsDir" -}}
+/k8s-automation/scripts
+{{- end }}
+
+{{/*
+Statefulset Volumes
+*/}}
+{{- define "tableau-server.statefulsetVolumes" -}}
+- name: configuration
+  configMap:
+    name: {{ include "tableau-server.configMap" . }}
+- name: bootstrap
+  persistentVolumeClaim:
+    claimName: {{ include "tableau-server.bootstrapPvc" . }}
+- name: scripts
+  configMap:
+    name: {{ include "tableau-server.scriptsConfigMapName" . | quote }}
+    defaultMode: 0755
+{{- end }}
+
+{{/*
+Statefulset Volume Mounts
+*/}}
+{{- define "tableau-server.statefulsetVolumeMounts" -}}
+- name: data
+  mountPath: /var/opt/tableau
+- name: configuration
+  mountPath: /docker/config/config.json
+  subPath: config.json
+- name: bootstrap
+  mountPath: /docker/config/bootstrap
+- name: scripts
+  mountPath: {{ include "tableau-server.scriptsDir" . }}
+{{- end }}
+
+{{/*
+Setup Hook annotations
+*/}}
+{{- define "tableau-server.setupHookAnnotations" -}}
+# This is what defines this resource as a hook. Without this line, the
+# job is considered part of the release.
+"helm.sh/hook": post-install,post-upgrade
+"helm.sh/hook-weight": "0"
+"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+{{- end }}

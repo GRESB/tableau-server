@@ -1,0 +1,91 @@
+{{- if and (not .Values.tableauServer.worker.bootstrap) (has "setup-hook.sh" (keys .Values.tableauServer.scripts)) }}
+{{- $setupJobName := (printf "%s-setup-job" (include "tableau-server.fullname" . )) }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $setupJobName | quote }}
+  labels:
+    {{- include "tableau-server.labels" . | nindent 4 }}
+  annotations:
+    {{- include "tableau-server.setupHookAnnotations" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      name: {{ $setupJobName | quote }}
+      labels:
+        {{- include "tableau-server.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ $setupJobName | quote }}
+      containers:
+        - name: post-install-job-primary-0
+          image: "bitnami/kubectl:latest"
+          tty: true
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - {{ printf "%s-primary-%d" (include "tableau-server.fullname" .) 0 }}
+            - "--"
+            - "/bin/bash"
+            - "-c"
+            - "{{ include "tableau-server.scriptsDir" . }}/setup-hook.sh"
+        {{ range $i, $e := until (int .Values.tableauServer.worker.replicas) }}
+        {{- with $ -}}
+        - name: post-install-job-worker-{{ $i }}
+          image: "bitnami/kubectl:latest"
+          tty: true
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - {{ printf "%s-worker-%d" (include "tableau-server.fullname" $) $i }}
+            - "--"
+            - "/bin/bash"
+            - "-c"
+            - "{{ include "tableau-server.scriptsDir" . }}/setup-hook.sh"
+        {{- end }}
+        {{ end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $setupJobName | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "tableau-server.labels" . | nindent 4 }}
+  annotations:
+    {{- include "tableau-server.setupHookAnnotations" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $setupJobName | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  annotations:
+    {{- include "tableau-server.setupHookAnnotations" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $setupJobName | quote }}
+    namespace: {{ .Release.Namespace | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $setupJobName | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ $setupJobName | quote }}
+  annotations:
+    {{- include "tableau-server.setupHookAnnotations" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+{{- end }}

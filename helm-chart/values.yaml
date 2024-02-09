@@ -126,6 +126,7 @@ tableauServer:
       periodSeconds: 30
       timeoutSeconds: 20
   worker:
+    replicas: 2
     # disable bootstrapping when the cluster is already bootstrapped
     # NB: this is useful when re-installing over an existing state
     bootstrap: true
@@ -135,3 +136,49 @@ tableauServer:
       enabled: true
     livenessProbe: {}
     readinessProbe: {}
+  scripts:
+    # If setup-hook.sh script is present, this script will be executed by a post-instal and post-upgrade helm hook
+    setup-hook.sh: |
+      #!/bin/bash
+
+      SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+      say() {
+        echo
+        echo "==> ${1}"
+        echo
+      }
+
+      set -euo pipefail
+      IFS=$'\n\t '
+
+      for script_file in "${SCRIPT_DIR}"/configure-*.sh; do
+        say "Executing ${script_file}"
+        ${script_file}
+      done
+    configure-crond.sh: |
+      #!/bin/bash
+
+      say() {
+        echo
+        echo "==> ${1}"
+        echo
+      }
+
+      set -euo pipefail
+      IFS=$'\n\t'
+
+      say "Running setup job on ${HOSTNAME}";
+      supervisord_dir="/var/opt/tableau/tableau_server/supervisord";
+      supervisord_sock="${supervisord_dir}/supervisord.sock";
+      crontab "${DOCKER_CONFIG}/customer-files/crontab";
+      if [[ ! -f "${supervisord_dir}/units/crond.conf" ]]; then
+        say "Copying supervisord config for crond";
+        cp "${DOCKER_CONFIG}/customer-files/crond.conf" "${supervisord_dir}/units/";
+      fi;
+      if [[ $(supervisorctl -s "unix://${supervisord_sock}" avail) != *"crond"* ]]; then
+        say "Adding crond to supervisord";
+        supervisorctl -s "unix://${supervisord_sock}" reread;
+        supervisorctl -s "unix://${supervisord_sock}" add crond;
+      fi;
+      say "Setup complete";

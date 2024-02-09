@@ -85,28 +85,23 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: configuration
-              mountPath: /docker/config/config.json
-              subPath: config.json
-            - name: data
-              mountPath: /var/opt/tableau
+            {{- include "tableau-server.statefulsetVolumeMounts" . | nindent 12 }}
             - name: licenses
               mountPath: /docker/license
-            - name: bootstrap
-              mountPath: /docker/config/bootstrap
+            - name: scripts-2
+              mountPath: /foo/bar
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
-        - name: configuration
-          configMap:
-            name: {{ include "tableau-server.configMap" . }}
+        {{- include "tableau-server.statefulsetVolumes" . | nindent 8 }}
         - name: licenses
           secret:
             secretName: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.licensesSecretNameSuffix }}"
-        - name: bootstrap
-          persistentVolumeClaim:
-            claimName: {{ include "tableau-server.bootstrapPvc" . }}
+        - name: scripts-2
+          configMap:
+            name: {{ include "tableau-server.scriptsConfigMapName" . | quote }}
+            defaultMode: 0755
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

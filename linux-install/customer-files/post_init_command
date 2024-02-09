@@ -48,8 +48,6 @@ configure_primary() {
   tsm topology set-process -n "${node}" -pr clientfileservice -c 1
 }
 
-
-
 configure_worker() {
   local node=${1}
 
@@ -90,11 +88,11 @@ wait_for_nodes() {
   nodes="$( tsm topology list-nodes )"
   # Loop until tsm topology list-nodes prints al 3 nodes
   while [[ "${nodes}" != *"node1"* || "${nodes}" != *"node2"* || "${nodes}" != *"node3"* ]]; do
-    say "Waiting for worker nodes to be ready, current node list is: ${nodes}"
+    say "Waiting for worker nodes to be ready, the current node list is: \n${nodes}"
     sleep 5
     nodes="$( tsm topology list-nodes )"
   done
-  say "All nodes are ready, current node list is: ${nodes}"
+  say "All nodes are ready, current node list is: \n${nodes}"
 }
 
 set -e

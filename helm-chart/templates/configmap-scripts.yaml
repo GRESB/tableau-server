@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tableau-server.scriptsConfigMapName" . | quote }}
+data:
+  {{- toYaml .Values.tableauServer.scripts | nindent 2 }}

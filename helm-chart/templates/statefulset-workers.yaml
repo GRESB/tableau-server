@@ -5,14 +5,14 @@ metadata:
   labels:
     {{- include "tableau-server.labels" . | nindent 4 }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.tableauServer.worker.replicas }}
   serviceName: {{ include "tableau-server.fullname" . }}
   selector:
     matchLabels:
       {{- include "tableau-server.selectorLabels" . | nindent 6 }}
   volumeClaimTemplates:
     - metadata:
-        name: tableau-server-data
+        name: data
       spec:
         accessModes:
           - ReadWriteOnce
@@ -57,7 +57,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.adminUserSecretNameSuffix }}"
-                  key: tsm-password
+                  key: "tsm-password"
           {{- if .Values.tableauServer.worker.probes.enabled }}
           {{- with .Values.tableauServer.worker.livenessProbe }}
           livenessProbe:
@@ -71,23 +71,12 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: tableau-server-configuration
-              mountPath: /docker/config/config.json
-              subPath: config.json
-            - name: tableau-server-data
-              mountPath: /var/opt/tableau
-            - name: tableau-server-bootstrap
-              mountPath: /docker/config/bootstrap
+            {{- include "tableau-server.statefulsetVolumeMounts" . | nindent 12 }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
-        - name: tableau-server-configuration
-          configMap:
-            name: {{ include "tableau-server.configMap" . }}
-        - name: tableau-server-bootstrap
-          persistentVolumeClaim:
-            claimName: {{ include "tableau-server.bootstrapPvc" . }}
+        {{- include "tableau-server.statefulsetVolumes" . | nindent 8 }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
