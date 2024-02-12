@@ -223,19 +223,28 @@ helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.pr
 
 ### Other
 
-#### DB access
+#### Repository access
 
-DB user access was too restrictive.
-Everytime the `tsm topology set-process` is used to move the Repository process (aka pgsql),
-the file bellow needs to be updated.
+The Repository process runs PostgreSQL,
+and access to that is controlled based on username, password and source of the traffic.
+In a cluster setup, the Tableau Server management process will configure each node
+that runs the Repository to accept connections from the other nodes in the cluster.
+However, it does that using the source IP of the nodes,
+and in a kubernetes environment those IPs are not fixed or predictable.
+This means that whenevr a pod is restarted,
+the processes on that node won't be able to reach the Repository in other nodes,
+since that node has a new and different IP.
 
+There are other situations in which access to Repository needs to be set up.
+For example, when there are maintenance jobs (like backup and restore jobs)
+that spin up dynamic components that need to reach other nodes or be reached by other nodes.
+
+The DB access configuration is written to files named `pg_hba.conf`,
+a search in the Tableau Server data directory will reveal all the `pg_hba.conf` at that moment
+(but remember they can be created dynamically).
+```bash
+find /var/opt/tableau/tableau_server -type f -iname 'pg_hba.conf'
 ```
-/var/opt/tableau/tableau_server/data/tabsvc/config/pgsql_0.20233.23.1017.0948/pg_hba.conf
-```
-
-During database maintenance, any node can spin up new applications that use the default `pg_hba.conf`.
-Therefore, those other files also need to be patched.
-However, these files are dynamically created, on the fly when `tsm jobs` execute.
 
 With a combination of crond, supervisord and bash scripting we implemented a script that gets installed in the nodes,
 that automatically patches all the `pg_hba.conf` under the data directory of Tableau Server.
@@ -260,10 +269,7 @@ That typically results in downtime.
 
 A better way to do that is to manually update the image on the primary stateful set,
 then once the primary node is completely functional, update the worker stateful set.
-This way there will always be a pod read to serve traffic.
-
-
-## Upgrade
+This way, there will always be a pod read to serve traffic.
 
 The Tableau Server documentation mentions two options for upgrading:
 1. build an upgrade image;
