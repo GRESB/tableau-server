@@ -23,13 +23,14 @@ where the primary node only runs the processes highlighted in the red boxes.
 [This page](https://help.tableau.com/current/server-linux/en-us/server-in-container_image.htm) explains
 how to configure many aspects of image building and image execution.
 
-### Build default container image
+### Build container images
 
 Download two files from the [Tableau Server releases page](http://tableau.com/support/releases/server/latest)
-(the version for both files needs to be the same) into [linux-install](./):
+(the version for both files does not need to be exactly the same, but as close as possible)
+into [linux-install](./):
 
-- The tableau server package: `tableau-server-<version>.rpm`
-- The container setup tool: `tableau-server-container-setup-tool-<version>.tar.gz`
+- The tableau server package: `tableau-server-<server-version>.rpm`
+- The container setup tool: `tableau-server-container-setup-tool-<container-setup-version>.tar.gz`
 - Any drivers that are needed from the [drivers page](https://www.tableau.com/support/drivers).
   Place the downloaded drivers under `linux-install/drivers`.
   To install the drivers, follow the instructions provided by Tableau for each of the drivers you download.
@@ -46,10 +47,12 @@ Download two files from the [Tableau Server releases page](http://tableau.com/su
   and [this (older) version](https://s3.amazonaws.com/athena-downloads/drivers/JDBC/SimbaAthenaJDBC-2.0.32.1000/AthenaJDBC42.jar)
   seems to be the one that works the best.
 
-At the time of writing, the latest version is 2023.3.0
+At the time of writing, the latest version is 2023.3.2,
+however, the latest version of the container setup tool is 2023.3.0.
 
 ```bash
-version=2023.3.0
+server_version=2023.3.2
+container_setup_version=2023.3.0
 ```
 
 Unpack the container setup tool, that will create a new directory under [linux-install](./).
@@ -73,11 +76,11 @@ that are set and the ones that are hardcoded in the build script.
 
 Before we start the installation we need to edit a script named `install-process-manager`,
 and add a `-f` flag to the command `initialize-tsm`.
-The script should be under `tableau-server-container-setup-tool-${version}/image/docker/`.
+The script should be under `tableau-server-container-setup-tool-${container_setup_version}/image/docker/`.
 
 ### Fix hardcoded environment variables in build script
 
-Edit the `linux-install/tableau-server-container-setup-tool-${version}/build-utils` file
+Edit the `linux-install/tableau-server-container-setup-tool-${container_setup_version}/build-utils` file
 and add the needed variables to the `add_args_to_dockerfile` function.
 For our needs we are customising the UID and GUIds, so we add 3 new variables to the variables array.
 
@@ -100,7 +103,7 @@ After:
               [UNPRIVILEGED_TABLEAU_UID]=unprivilegedTableauUid )
 ```
 
-Then edit the Dockerfile `linux-install/tableau-server-container-setup-tool-${version}/image/Dockerfile`
+Then edit the Dockerfile `linux-install/tableau-server-container-setup-tool-${container_setup_version}/image/Dockerfile`
 to define the enw build args.
 
 Before:
@@ -157,7 +160,7 @@ ENV CONTAINER_ENABLED=1 \
 ```
 
 Finally,
-add a `chwon` command to the dockerfile `linux-install/tableau-server-container-setup-tool-${version}/image/Dockerfile`.
+add a `chwon` command to the dockerfile `linux-install/tableau-server-container-setup-tool-${container_setup_version}/image/Dockerfile`.
 
 Before
 
@@ -180,7 +183,7 @@ RUN ${DOCKER_CONFIG}/install-process-manager \
 cd linux-install
 
 # Copy files to customer-files
-cp -f customer-files/* tableau-server-container-setup-tool-${version}/customer-files/
+cp -f customer-files/* tableau-server-container-setup-tool-${container_setup_version}/customer-files/
 
 # If you are running on a platform different from linux/amd64
 # you need to set the platform for docker build to use
@@ -189,7 +192,8 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 # If you are on linux, skip the following command
 # otherwise, run it to start a container with the required cli tools to run the image build script
 docker run -it --rm --platform=linux/amd64 \
-    -e version=${version} \
+    -e server_version=${server_version} \
+    -e container_setup_version=${container_setup_version} \
     -e DOCKER_DEFAULT_PLATFORM=linux/amd64 \
     -v $PWD:/tableau-server-install \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -200,8 +204,8 @@ yum install -y yum-utils
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
 
-cd /tableau-server-install/tableau-server-container-setup-tool-${version}
-./build-image --accepteula -i ../tableau-server-${version//./-}.x86_64.rpm -o ghcr.io/gresb/tableau-server:latest -e ../build-environment
+cd /tableau-server-install/tableau-server-container-setup-tool-${container_setup_version}
+./build-image --accepteula -i ../tableau-server-${server_version//./-}.x86_64.rpm -o ghcr.io/gresb/tableau-server:latest -e ../build-environment
 
 # If you are not building on linux and have started a build container
 exit

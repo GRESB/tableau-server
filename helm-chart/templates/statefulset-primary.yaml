@@ -88,8 +88,6 @@ spec:
             {{- include "tableau-server.statefulsetVolumeMounts" . | nindent 12 }}
             - name: licenses
               mountPath: /docker/license
-            - name: scripts-2
-              mountPath: /foo/bar
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -98,10 +96,6 @@ spec:
         - name: licenses
           secret:
             secretName: "{{ include "tableau-server.fullname" . }}-{{ .Values.tableauServer.licensesSecretNameSuffix }}"
-        - name: scripts-2
-          configMap:
-            name: {{ include "tableau-server.scriptsConfigMapName" . | quote }}
-            defaultMode: 0755
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

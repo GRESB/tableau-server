@@ -15,7 +15,7 @@ licenses can be downloaded from the Tableau Customer Portal.
 ## Container images
 
 Tableau does not provide Tableau server cotnaienr images.
-What they do provide is a tool to build those imagees.
+What they do provide is a tool to build those images.
 Instructions on how to build such an image can be found in the [linux-install README.md](linux-install/README.md) on
 this repository.
 
@@ -261,3 +261,36 @@ That typically results in downtime.
 A better way to do that is to manually update the image on the primary stateful set,
 then once the primary node is completely functional, update the worker stateful set.
 This way there will always be a pod read to serve traffic.
+
+
+## Upgrade
+
+The Tableau Server documentation mentions two options for upgrading:
+1. build an upgrade image;
+2. provision a new Tableau Server and then restore a backup from a previous version.
+
+Building an upgrade image seems to work for single-node topologies.
+However, for multi-node topologies,
+that method does not work because the cluster running the upgrade image never gets into a fully functioning state.
+When using the upgrade image method, once builds a new image for upgrading
+and then runs that [image as a job](https://github.com/tableau/tableau-server-in-kubernetes/blob/main/templates/upgrade-job.yml).
+The pod in the upgrade job needs to mount the data directory of the primary node,
+which means that node needs to be stopped.
+Imagine a 3 node cluster where the pods are called
+
+- tableau-server-primary-0
+- tableau-server-worker-0
+- tableau-server-worker-1
+
+When the primary pod (from the stateful set) is replaced by a pod from the upgrade job,
+that pod will never have the same name as `tableau-server-primary-0`.
+That is because of the way k8s names pods using a seemingly random string as a suffix.
+Since Tableau Server relies on the names of the pods (ie. the hostnames) for connectivity within the cluster,
+the worker nodes will never be able to connect to the upgrade image container,
+because they will keep trying to reach it with the original primary node hostname `tableau-server-primary-0`.
+And alternative to a job could be to replace the image of the primary node stateful set with the upgrade image.
+That way, the hostname would be the same, and the cluster would converge toa fully functional state,
+a requirement for the upgrade.
+
+Leaning on the sid eof immutable infrastructure, the method we use to upgrade Tableau Server is the backup and restore.
+To do that, we provision a completely new cluster and then restore a backup fo the previous cluster in it.
