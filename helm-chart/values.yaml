@@ -89,6 +89,8 @@ terminationGracePeriodSeconds: 120
 dns:
   clusterDomain: cluster.local
 
+extraInitContainers: []
+
 tableauServer:
   licensesSecretNameSuffix: licenses
   adminUserSecretNameSuffix: admin-user
