@@ -89,7 +89,18 @@ terminationGracePeriodSeconds: 120
 dns:
   clusterDomain: cluster.local
 
-extraInitContainers: []
+initContainers: []
+# - name: init-tableau
+#   image: busybox
+#   command: ["/bin/sh", "-c"]
+#   args: ["echo Hello, This is Init Container for Tableau"]
+#   resources:
+#     limits:
+#       cpu: "100m"
+#       memory: "128Mi"
+#     requests:
+#       cpu: "50m"
+#       memory: "64Mi"
 
 tableauServer:
   licensesSecretNameSuffix: licenses

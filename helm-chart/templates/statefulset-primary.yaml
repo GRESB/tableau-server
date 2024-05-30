@@ -38,9 +38,43 @@ spec:
       serviceAccountName: {{ include "tableau-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.extraInitContainers }}
+      {{- with .Values.initContainers }}
       initContainers:
-        {{- toYaml .Values.extraInitContainers | nindent 8 }}
+      {{- range .Values.initContainers }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          imagePullPolicy: {{ .imagePullPolicy | default "IfNotPresent" }}
+          command: {{ .command | toJson }}
+          args: {{ .args | toJson }}
+          workingDir: {{ .workingDir | default "" }}
+          {{- if .ports }}
+          ports:
+            {{- toYaml .ports | nindent 12 }}
+          {{- end }}
+          {{- if .env }}
+          env:
+            {{- toYaml .env | nindent 12 }}
+          {{- end }}
+          {{- if .resources }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+          {{- end }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+            {{- toYaml .volumeMounts | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .readinessProbe | nindent 12 }}
+          lifecycle:
+            {{- toYaml .lifecycle | nindent 12 }}
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
+          stdin: {{ .stdin | default false }}
+          stdinOnce: {{ .stdinOnce | default false }}
+          tty: {{ .tty | default false }}
+      {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
