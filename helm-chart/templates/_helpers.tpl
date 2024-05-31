@@ -132,7 +132,7 @@ Statefulset Volume Mounts
   mountPath: {{ include "tableau-server.scriptsDir" . }}
 {{- if .Values.logsVolumeMounts.enable }}
 - name: logs
-  mountPath: /var/opt/tableau/tableau_server/data/tabsvc/logs
+  mountPath: {{ .Values.logsPath }}
   readOnly: false
 {{- end }}
 {{- end }}

@@ -78,14 +78,17 @@ volumeMounts: []
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
+# Tableau primary and workers logs path
+logsPath: /var/opt/tableau/tableau_server/data/tabsvc/logs
+
 # log dir to be mounted to hostPath, enable logsVolume as well for mounting logs directory to hostPath
 logsVolumeMounts: 
-  enable: false
+  enable: true
 
 # hostVolume where logs directory will be mounted
 logsVolume:
-  enable: false
-# hostPath: /tmp/tableau/logs
+  enable: true
+  hostPath: "/tmp/tableau/logs"
 
 nodeSelector: {}
 
@@ -98,18 +101,20 @@ terminationGracePeriodSeconds: 120
 dns:
   clusterDomain: cluster.local
 
+# permissions needed when mounts logs path to host, change user:group as per need
 initContainers: []
-# - name: init-tableau
-#   image: busybox
-#   command: ["/bin/sh", "-c"]
-#   args: ["echo Hello, This is Init Container for Tableau"]
-#   resources:
-#     limits:
-#       cpu: "100m"
-#       memory: "128Mi"
-#     requests:
-#       cpu: "50m"
-#       memory: "64Mi"
+  # - name: "log-dir-permission"
+  #   image: "ubuntu:24.04"
+  #   command:
+  #    - "/bin/sh"
+  #    - "-c"
+  #    - "chown -R 1001:3002 /var/opt/tableau/tableau_server/data/tabsvc/logs"
+  #   securityContext: 
+  #     runAsUser: 0
+  #   volumeMounts:
+  #     - mountPath: /var/opt/tableau/tableau_server/data/tabsvc/logs
+  #       name: logs
+  #       readOnly: false
 
 tableauServer:
   licensesSecretNameSuffix: licenses
