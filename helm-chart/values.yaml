@@ -78,6 +78,15 @@ volumeMounts: []
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
+# log dir to be mounted to hostPath, enable logsVolume as well for mounting logs directory to hostPath
+logsVolumeMounts: 
+  enable: false
+
+# hostVolume where logs directory will be mounted
+logsVolume:
+  enable: false
+# hostPath: /tmp/tableau/logs
+
 nodeSelector: {}
 
 tolerations: []

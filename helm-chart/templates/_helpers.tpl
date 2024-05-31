@@ -110,6 +110,11 @@ Statefulset Volumes
   configMap:
     name: {{ include "tableau-server.scriptsConfigMapName" . | quote }}
     defaultMode: 0755
+{{- if .Values.logsVolume.enable }}
+- name: logs
+  hostPath: 
+    path: {{ default ("/tmp/tableau/logs") .Values.logsVolume.hostPath }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -125,6 +130,11 @@ Statefulset Volume Mounts
   mountPath: /docker/config/bootstrap
 - name: scripts
   mountPath: {{ include "tableau-server.scriptsDir" . }}
+{{- if .Values.logsVolumeMounts.enable }}
+- name: logs
+  mountPath: /var/opt/tableau/tableau_server/data/tabsvc/logs
+  readOnly: false
+{{- end }}
 {{- end }}
 
 {{/*
