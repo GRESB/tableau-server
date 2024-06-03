@@ -114,6 +114,7 @@ Statefulset Volumes
 - name: logs
   hostPath: 
     path: {{ default ("/tmp/tableau/logs") .Values.logsVolume.hostPath }}
+    type: DirectoryOrCreate
 {{- end }}
 {{- end }}
 
