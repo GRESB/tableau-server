@@ -196,8 +196,8 @@ tableauServer:
     - name: FLUENTD_CONF
       value: "fluentd.conf"
     volumeMounts: []
-    # should be in sync with fluentd.conf below
-    logsVolMountPath: "/var/app/logs"
+    # data volume is mounted at same path in tableau container
+    logsVolMountPath: "/var/opt/tableau"
     config:
     # This config only pulls the individual service log out of the tableau container and push it to standard output
       fluentd.conf: |
