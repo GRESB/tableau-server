@@ -1,0 +1,8 @@
+{{- if .Values.tableauServer.logForwarder.enable -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tableau-server.logForwarderName" . }}
+data:
+  {{- toYaml .Values.tableauServer.logForwarder.config | nindent 2 }}
+{{- end }}

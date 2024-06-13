@@ -75,8 +75,62 @@ spec:
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.tableauServer.logForwarder.enable }}
+        - name: {{ include "tableau-server.logForwarderName" . }}
+          image: {{ .Values.tableauServer.logForwarder.image.repository }}:{{ .Values.tableauServer.logForwarder.image.tag }}
+          imagePullPolicy: {{ .Values.tableauServer.logForwarder.image.pullPolicy }}
+          env:
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_UUID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+            {{- with .Values.tableauServer.logForwarder.envVars }}
+              {{- toYaml . | nindent 10 }}
+            {{- end }}
+          {{- with .Values.tableauServer.logForwarder.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tableauServer.logForwarder.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.tableauServer.logForwarder.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: {{ .Values.tableauServer.logForwarder.logsVolMountPath }}
+            name:  data
+            readOnly: true
+          - mountPath: /var/log
+            name: varlog
+          - mountPath: /fluentd/etc
+            name: fluentd-config
+            {{- with .Values.tableauServer.logForwarder.volumeMounts }}
+              {{- toYaml . | nindent 10 }}
+            {{- end }}
+        {{- end }}
       volumes:
         {{- include "tableau-server.statefulsetVolumes" . | nindent 8 }}
+        {{- if .Values.tableauServer.logForwarder.enable }}
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: fluentd-config
+          configMap:
+            name:  {{ include "tableau-server.logForwarderName" . }}
+        {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

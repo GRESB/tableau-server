@@ -14,7 +14,7 @@ licenses can be downloaded from the Tableau Customer Portal.
 
 ## Container images
 
-Tableau does not provide Tableau server cotnaienr images.
+Tableau does not provide Tableau server container images.
 What they do provide is a tool to build those images.
 Instructions on how to build such an image can be found in the [linux-install README.md](linux-install/README.md) on
 this repository.
@@ -35,8 +35,8 @@ primary and worker.
 The primary StatefulSet provisions the primary node pod, while the worker StatefulSet provisions two worker pods.
 Underlying to each pod,
 there is a PersistentVolumeClaim that makes sure each pod gets the same underlying volume for their own data.
-On the first installation, we need to disable the liveness and readiness probles for the worker pods.
-We need to do that because these probes will not respond successfuly until the cluster is configured and operational.
+On the first installation, we need to disable the liveness and readiness probes for the worker pods.
+We need to do that because these probes will not respond successfully until the cluster is configured and operational.
 That would mean there would only be one worker pod,
 since the underlying StatefulSet would not schedule the second until the first is alive and ready.
 
@@ -50,7 +50,7 @@ After the helm installation, there should be three running pods,
 where one is the primary node, and the other two are the workers.
 The workers will boot up and wait for a bootstrap file that the primary creates in a shared volume
 (we use EFS for that volume, but other options are possible, PRs are welcome for adding those).
-Once the boostrap file is available to the workers, they will complete their own installation.
+Once the bootstrap file is available to the workers, they will complete their own installation.
 
 If for any reason the primary pod does not create the bootstrap file automatically,
 use the following Tableau Server Management command, on the primary pod, to generate it.
@@ -63,7 +63,7 @@ tsm topology nodes get-bootstrap-file -f /docker/config/bootstrap/bootstrap.json
 
 #### Useful commands to inspect the state of the pods
 
-On boostrap, Tableau Server on each of the pods will install some components.
+On bootstrap, Tableau Server on each of the pods will install some components.
 The status of that installation can be viewed by inspecting the following log file.
 
 For the primary pod.
@@ -231,7 +231,7 @@ In a cluster setup, the Tableau Server management process will configure each no
 that runs the Repository to accept connections from the other nodes in the cluster.
 However, it does that using the source IP of the nodes,
 and in a kubernetes environment those IPs are not fixed or predictable.
-This means that whenevr a pod is restarted,
+This means that whenever a pod is restarted,
 the processes on that node won't be able to reach the Repository in other nodes,
 since that node has a new and different IP.
 
