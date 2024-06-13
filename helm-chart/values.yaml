@@ -183,7 +183,7 @@ tableauServer:
       fi;
       say "Setup complete";
   logForwarder:
-    enable: true
+    enable: false
     name: "fluentd"
     image:
       repository: fluent/fluentd
