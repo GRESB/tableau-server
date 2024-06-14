@@ -1,8 +1,8 @@
-{{- if .Values.tableauServer.logForwarder.enable -}}
+{{- if .Values.tableauServer.fluentd.enable -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "tableau-server.logForwarderName" . }}
+  name: {{ include "tableau-server.fluentdName" . }}
 data:
-  {{- toYaml .Values.tableauServer.logForwarder.config | nindent 2 }}
+  {{- toYaml .Values.tableauServer.fluentd.config | nindent 2 }}
 {{- end }}

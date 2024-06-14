@@ -69,10 +69,10 @@ Create the name of cluster role to use
 {{- end }}
 
 {{/*
-Create the name of log forwarder to use
+Create the name of fluentd to use
 */}}
-{{- define "tableau-server.logForwarderName" -}}
-{{- default (printf "%s-logger" (include "tableau-server.fullname" .)) .Values.tableauServer.logForwarder.name }}
+{{- define "tableau-server.fluentdName" -}}
+{{- default (printf "%s-logger" (include "tableau-server.fullname" .)) .Values.tableauServer.fluentd.name }}
 {{- end }}
 
 {{/*

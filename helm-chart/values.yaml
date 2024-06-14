@@ -182,7 +182,7 @@ tableauServer:
         supervisorctl -s "unix://${supervisord_sock}" add crond;
       fi;
       say "Setup complete";
-  logForwarder:
+  fluentd:
     enable: false
     name: "fluentd"
     image:
