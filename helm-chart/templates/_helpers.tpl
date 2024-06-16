@@ -62,6 +62,20 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Create the name of cluster role to use
+*/}}
+{{- define "tableau-server.clusterRoleName" -}}
+{{- default (include "tableau-server.fullname" .) .Values.clusterRoleName }}
+{{- end }}
+
+{{/*
+Create the name of fluentd to use
+*/}}
+{{- define "tableau-server.fluentdName" -}}
+{{- default (printf "%s-logger" (include "tableau-server.fullname" .)) .Values.tableauServer.fluentd.name }}
+{{- end }}
+
+{{/*
 Tableau Server Config configMap name
 */}}
 {{- define "tableau-server.configMap" -}}

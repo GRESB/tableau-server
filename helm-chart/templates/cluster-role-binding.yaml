@@ -1,0 +1,16 @@
+{{- if .Values.serviceAccount.create -}}
+{{- if .Values.tableauServer.fluentd.enable -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "tableau-server.clusterRoleName" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "tableau-server.clusterRoleName" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "tableau-server.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}
