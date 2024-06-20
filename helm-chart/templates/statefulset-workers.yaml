@@ -96,6 +96,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          - name: TABLEAU_VERSION
+            value: {{ .Values.image.tag }}
+          - name: FLUENTD_CONF
+            value: "fluentd.conf"
             {{- with .Values.tableauServer.fluentd.envVars }}
               {{- toYaml . | nindent 10 }}
             {{- end }}
