@@ -97,6 +97,7 @@ tableauServer:
   bootstrapDir:
     capacity: 10Mi
     storageClassName: aws-efs
+  logLevel: info
   config: |-
     {
       "configEntities": {
