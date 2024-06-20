@@ -192,9 +192,7 @@ tableauServer:
     livenessProbe: {}
     readinessProbe: {}
     resources: {}
-    envVars:
-    - name: FLUENTD_CONF
-      value: "fluentd.conf"
+    environment: prd
     volumeMounts: []
     # data volume is mounted at same path in tableau container
     logsVolMountPath: "/var/opt/tableau"

@@ -114,6 +114,8 @@ spec:
                 fieldPath: metadata.name
           - name: TABLEAU_VERSION
             value: {{ .Values.image.tag }}
+          - name: ENVIRONMENT
+            value: {{ .Values.tableauServer.fluentd.environment }}
           - name: FLUENTD_CONF
             value: "fluentd.conf"
             {{- with .Values.tableauServer.fluentd.envVars }}
