@@ -4,5 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "tableau-server.fluentdName" . }}
 data:
-  {{- toYaml .Values.tableauServer.fluentd.config | nindent 2 }}
+  fluentd.conf: |
+  {{- .Values.tableauServer.fluentd.config.inputs | nindent 4 -}}
+  {{- .Values.tableauServer.fluentd.config.outputs | nindent 4 -}}
 {{- end }}

@@ -97,6 +97,7 @@ tableauServer:
   bootstrapDir:
     capacity: 10Mi
     storageClassName: aws-efs
+  logLevel: info
   config: |-
     {
       "configEntities": {
@@ -192,15 +193,13 @@ tableauServer:
     livenessProbe: {}
     readinessProbe: {}
     resources: {}
-    envVars:
-    - name: FLUENTD_CONF
-      value: "fluentd.conf"
+    environment: prd
     volumeMounts: []
     # data volume is mounted at same path in tableau container
     logsVolMountPath: "/var/opt/tableau"
     config:
     # This config only pulls the individual service log out of the tableau container and push it to standard output
-      fluentd.conf: |
+      inputs: |
         <source>
           @type tail
           path /var/opt/tableau/tableau_server/data/tabsvc/logs/apigateway/*.log
@@ -243,6 +242,7 @@ tableauServer:
           tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.pgsql.*"
           format none
         </source>
+      outputs: |
         <match **>
           @type stdout
         </match>

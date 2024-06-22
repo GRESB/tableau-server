@@ -31,6 +31,18 @@ spec:
             - "/bin/bash"
             - "-c"
             - "{{ include "tableau-server.scriptsDir" . }}/setup-hook.sh"
+        - name: post-install-job-tsm-log-level
+          image: "bitnami/kubectl:latest"
+          tty: true
+          command:
+            - "/opt/bitnami/kubectl/bin/kubectl"
+            - "exec"
+            - "-it"
+            - {{ printf "%s-primary-%d" (include "tableau-server.fullname" .) 0 }}
+            - "--"
+            - "/bin/bash"
+            - "-c"
+            - "tsm configuration set -k tsm.controlapp.log.level -v {{ .Values.tableauServer.logLevel }} -k tsm.log.level -v {{ .Values.tableauServer.logLevel }} -k backgrounder.log.level -v {{ .Values.tableauServer.logLevel }} -k dataserver.log.level -v {{ .Values.tableauServer.logLevel }} -k clustercontroller.log.level -v {{ .Values.tableauServer.logLevel }} -k filestore.log.level -v {{ .Values.tableauServer.logLevel }} -k gateway.log.level -v {{ .Values.tableauServer.logLevel }} -k gateway.httpd.loglevel -v {{ .Values.tableauServer.logLevel }} -k hyper.log.level -v {{ .Values.tableauServer.logLevel }} -k tomcatcontainer.log.level -v {{ .Values.tableauServer.logLevel }} -k vizportal.log.level -v {{ .Values.tableauServer.logLevel }} -k vizqlserver.log.level -v {{ .Values.tableauServer.logLevel }}"
         {{ range $i, $e := until (int .Values.tableauServer.worker.replicas) }}
         {{- with $ -}}
         - name: post-install-job-worker-{{ $i }}
