@@ -206,13 +206,10 @@ After the commands are executed,
 the primary node will run a Tableau Server job that will configure the topology on the cluster.
 This job can take up to approximately one hour.
 
+The topology setup we use is defined in the [post_init_command script](linux-install/customer-files/post_init_command).
+That is executed automtically during the installation proceadure.
+
 ### Enable pod probes for worker nodes
-
-NOTE:
-
-- figure out if we can scale down the primary node resources since it doesn't need to run a full set of Tableau Server
-  processes.
-- figure out how we assign licenses since primary pod isn't running any licenses processes.
 
 To finalise the installation, we need to enable the pod probes for the worker nodes.
 We can do that by updating the helm release.
@@ -225,7 +222,7 @@ helm upgrade --install -n tableau tableau-server-helm helm-chart --set worker.pr
 
 #### Repository access
 
-The Repository process runs PostgreSQL,
+The Repository process runs Postgres,
 and access to that is controlled based on username, password and source of the traffic.
 In a cluster setup, the Tableau Server management process will configure each node
 that runs the Repository to accept connections from the other nodes in the cluster.
@@ -260,6 +257,26 @@ but will allow access from `0.0.0.0/0`, basically anywhere.
 We highly recommend setting some CIDRs,
 and they can be set in file [custom-env](linux-install/customer-files) assigned to `K8S_CIDRS`.
 When setting multiple CIDRs, separate them by spaces.
+
+#### Trust between components
+
+Several Tableau Server components run an Apache Thrift server.
+These components also establish trust based on IPs.
+When IPs change some components stop communicating with each other.
+While this situation as not yet resulted in downtime for us,
+because the server keeps serving requests,
+the availability is reduced.
+
+The way to re-establish trust is to run a `tsm` command, but that does imply downtime for the duration of the command.
+
+```bash
+tsm authentication trusted configure -th "tableau-server-primary-0", "tableau-server-worker-0", "tableau-server-worker-1"
+tsm pending-changes apply
+
+# According to the documentation, the command above should be enough.
+# However, we have seen that sometimes we also need to do a restart
+tsm restart
+```
 
 #### Container image upgrade
 
