@@ -215,27 +215,3 @@ exit
 docker login ...
 docker push ghcr.io/gresb/tableau-server:latest
 ```
-
-#### OIDC
-
-```bash
-tsm configuration set -k gateway.external_url -v https://analytics.svc.gresb.com
-tsm configuration set -k vizportal.openid.connection_timout -v 10
-tsm configuration set -k vizportal.openid.config_url -v ...
-tsm configuration set -k vizportal.openid.ignore_domain -v false
-tsm configuration set -k vizportal.openid.ignore_jwk -v false
-tsm configuration set -k vizportal.openid.iframed_idp.enabled -v false
-tsm configuration set -k vizportal.openid.id_claim -v sub
-tsm configuration set -k vizportal.openid.read_timeout -v 30
-tsm configuration set -k vizportal.openid.username_claim -v email
-tsm configuration set -k vizportal.openid.enabled -v true
-tsm configuration set -k vizportal.openid.client_id -v ...
-tsm configuration set -k vizportal.openid.client_secret -v ...
-```
-
-### Other Configuration
-
-```bash
-tsm configuration set -k gateway.public.host -v analytics.svc.gresb.com
-tsm configuration set -k gateway.public.port -v 443
-```
