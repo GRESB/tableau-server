@@ -82,7 +82,7 @@ The script should be under `tableau-server-container-setup-tool-${container_setu
 
 Edit the `linux-install/tableau-server-container-setup-tool-${container_setup_version}/build-utils` file
 and add the needed variables to the `add_args_to_dockerfile` function.
-For our needs we are customising the UID and GUIds, so we add 3 new variables to the variables array.
+For our needs we are customizing the UID and GUIds, so we add three new variables to the variable array.
 
 Before:
 

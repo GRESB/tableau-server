@@ -1,16 +1,38 @@
 # tableau-server
 
-Everything we need to run Tableau Server on kubernetes
+Tableau Server is typically installed on (virtual) machines.
+However, for those that do not want to manage machines, there is an option to run Tableau Server on containers.
+This repository contains the setup that the Engineering team at GRESB created to run Tableau Server on containers,
+managed in kubernetes.
 
-Links:
+The work in this repository is heavily inspired on [another GitHub repository from Tableau](https://github.com/tableau/tableau-server-in-kubernetes),
+that provides kube manifests to run Tableau Server.
+The main difference between this repository and the [tableau/tableau-server-in-kubernetes](https://github.com/tableau/tableau-server-in-kubernetes)
+repository is that we provide [a methodology to build the Tableau Server container image](./linux-install),
+including some fixes to the Tableau Server container setup tool itself and 
+additional tooling to works around some limitations of running Tableau Server on kubernetes.
+We also provide a [Helm chart](./helm-chart) to install Tableau Server on kubernetes.
+
+Furthermore,
+the manifests provided the [tableau/tableau-server-in-kubernetes](https://github.com/tableau/tableau-server-in-kubernetes)
+repository are not fit for the type of license that GRESB has.
+GRESB purchased a core-based license from Tableau,
+and that means we can only license a fixed amount of hardware capacity.
+That, in turn, means that we can't use dynamic scaling of the pods and, also, that we need
+to adapt the topology of the Tableau Server cluster to achieve HA while remaining within the bounds of our license.
+
+Helpful links from Tableau:
 
 - https://help.tableau.com/current/server/en-us/distrib_ha_install_3node.htm
 - https://help.tableau.com/current/server-linux/en-us/server-in-container.htm
 - https://help.tableau.com/current/server-linux/en-us/server-in-container_image.htm
 
+This work was not possible without the help of the Tableau Server team at Tableau.
+To them, we are very grateful.
+
 ## Licenses
 
-licenses can be downloaded from the Tableau Customer Portal.
+Licenses can be downloaded from the Tableau Customer Portal.
 
 ## Container images
 
@@ -21,8 +43,8 @@ this repository.
 
 ## Provisioning
 
-When provisioning a Tableau Server cluster we need
-to do a few helm install/upgrade while issuing some commands on the primary node in between.
+When provisioning a Tableau Server cluster,
+we need to do a few helm install/upgrade while issuing some commands on the primary node in between.
 
 ### First helm release install
 
@@ -103,10 +125,10 @@ cat /var/opt/tableau/tableau_server/supervisord/run-tableau-server.log
 Once all three pods are running, and the installation is complete, we need to configure the cluster topology.
 There are several topologies that can be used.
 One common topology is to run all Tableau Server processes in all nodes.
-This topology is good when dynamic scaling is needed,
+This topology is good when dynamic scaling is necessary,
 because then the horizontal pod autoscaler can be configured to schedule more worker nodes when needed.
 This topology can't be used with a core-based license because for those types of licenses, the capacity used
-(ie. the number of pods) needs to align with the contracted licenses,
+(i.e. the number of pods) needs to align with the contracted licenses,
 and therefore scaling can't be dynamic unless licenses are purchased upfront.
 
 For core-based licenses,
@@ -114,7 +136,7 @@ like the ones GRESB has, Tableau recommends a topology where the primary node ru
 processes, while the workers run the full set of Tableau Server processes.
 This topology is depicted in the "Node 1" configuration in the [3-node-topology](docs/images/3-node-topology.png)
 diagram.
-The primary node, is configured with the processes that are marked in red on "Node 1",
+The primary node is configured with the processes that are marked in red on "Node 1",
 and the two worker nodes are configured with all the other processes (of "Node 1").
 To configure the topology, we need to execute the following commands on the primary node.
 
@@ -207,11 +229,11 @@ the primary node will run a Tableau Server job that will configure the topology 
 This job can take up to approximately one hour.
 
 The topology setup we use is defined in the [post_init_command script](linux-install/customer-files/post_init_command).
-That is executed automtically during the installation proceadure.
+That is executed automatically during the installation procedure.
 
 ### Enable pod probes for worker nodes
 
-To finalise the installation, we need to enable the pod probes for the worker nodes.
+To finalize the installation, we need to enable the pod probes for the worker nodes.
 We can do that by updating the helm release.
 
 ```bash
@@ -233,7 +255,7 @@ the processes on that node won't be able to reach the Repository in other nodes,
 since that node has a new and different IP.
 
 There are other situations in which access to Repository needs to be set up.
-For example, when there are maintenance jobs (like backup and restore jobs)
+For example, when there are maintenance jobs (like backup and restore jobs),
 that spin up dynamic components that need to reach other nodes or be reached by other nodes.
 
 The DB access configuration is written to files named `pg_hba.conf`,
@@ -262,8 +284,8 @@ When setting multiple CIDRs, separate them by spaces.
 
 Several Tableau Server components run an Apache Thrift server.
 These components also establish trust based on IPs.
-When IPs change some components stop communicating with each other.
-While this situation as not yet resulted in downtime for us,
+When IPs change, some components stop communicating with each other.
+While this situation has not yet resulted in downtime for us,
 because the server keeps serving requests,
 the availability is reduced.
 
@@ -299,7 +321,7 @@ When using the upgrade image method, once builds a new image for upgrading
 and then runs that [image as a job](https://github.com/tableau/tableau-server-in-kubernetes/blob/main/templates/upgrade-job.yml).
 The pod in the upgrade job needs to mount the data directory of the primary node,
 which means that node needs to be stopped.
-Imagine a 3 node cluster where the pods are called
+Imagine a 3-node cluster where the pods are called
 
 - tableau-server-primary-0
 - tableau-server-worker-0
@@ -308,12 +330,12 @@ Imagine a 3 node cluster where the pods are called
 When the primary pod (from the stateful set) is replaced by a pod from the upgrade job,
 that pod will never have the same name as `tableau-server-primary-0`.
 That is because of the way k8s names pods using a seemingly random string as a suffix.
-Since Tableau Server relies on the names of the pods (ie. the hostnames) for connectivity within the cluster,
+Since Tableau Server relies on the names of the pods (i.e. the hostnames) for connectivity within the cluster,
 the worker nodes will never be able to connect to the upgrade image container,
 because they will keep trying to reach it with the original primary node hostname `tableau-server-primary-0`.
 And alternative to a job could be to replace the image of the primary node stateful set with the upgrade image.
-That way, the hostname would be the same, and the cluster would converge toa fully functional state,
+That way, the hostname would be the same, and the cluster would converge to a fully functional state,
 a requirement for the upgrade.
 
-Leaning on the sid eof immutable infrastructure, the method we use to upgrade Tableau Server is the backup and restore.
-To do that, we provision a completely new cluster and then restore a backup fo the previous cluster in it.
+Leaning on the side of immutable infrastructure, the method we use to upgrade Tableau Server is the backup and restore.
+To do that, we provision a completely new cluster and then restore a backup for the previous cluster in it.
