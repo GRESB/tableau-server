@@ -1,5 +1,5 @@
 tableau-server*.rpm
 tableau-server*.tar.gz
 tableau-server-container-setup-tool-*
-linux-install/drivers/
+linux-install/customer-files/drivers/
 reg-info.json

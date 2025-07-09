@@ -31,17 +31,18 @@ into [linux-install](./):
 
 - The tableau server package: `tableau-server-<server-version>.rpm`
 - The container setup tool: `tableau-server-container-setup-tool-<container-setup-version>.tar.gz`
+- Check the mysql driver compatibility [here](https://www.tableau.com/support/drivers) and download it to           `customer-files/drivers`. Update the `customer-files/setup-script` to use the copied version.
 - Any drivers that are needed from the [drivers page](https://www.tableau.com/support/drivers).
-  Place the downloaded drivers under `linux-install/drivers`.
+  Place the downloaded drivers under `linux-install/customer-files/drivers`.
   To install the drivers, follow the instructions provided by Tableau for each of the drivers you download.
   The installation instructions need to be coded in a script.
-  That scrip needs to be copied to `customer-files/setup-script`.
-  For JDBC drivers, create a directory structure within `linux-install/drivers`,
+  That script needs to be copied to `customer-files/setup-script`.
+  For JDBC drivers, create a directory structure within `linux-install/customer-files/drivers` like `linux-install/customer-files/drivers/jdbc/aws-athena`,
   separating each connector driver in it's own directory.
   The `setup-script` script will copy all JDBC drivers to the build environment.
   For other types of drivers,
   please append the required commands to the `setup-script` script for completing the installation.
-  There is a [GitHub repository on the Tableau organization](https://github.com/tableau/container_image_builder) that
+  There is a GitHub repository on the Tableau organization that
   contains scripts to download many types of drivers.
   NB: We tested several AWS Athena drivers
   and [this (older) version](https://s3.amazonaws.com/athena-downloads/drivers/JDBC/SimbaAthenaJDBC-2.0.32.1000/AthenaJDBC42.jar)
