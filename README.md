@@ -77,7 +77,7 @@ Once the bootstrap file is available to the workers, they will complete their ow
 If for any reason the primary pod does not create the bootstrap file automatically,
 use the following Tableau Server Management command, on the primary pod, to generate it.
 Please keep in mind that if the primary pod does not automatically create the bootstrap file for the workers,
-that could be a sing that the primary pod is not well setup.
+that could be a sign that the primary pod is not well setup.
 
 ```bash
 tsm topology nodes get-bootstrap-file -f /docker/config/bootstrap/bootstrap.json
@@ -141,40 +141,34 @@ and the two worker nodes are configured with all the other processes (of "Node 1
 To configure the topology, we need to execute the following commands on the primary node.
 
 ```bash
-# Start cluster controller on node2 and node 3
-tsm topology set-process -n node2 -pr clustercontroller -c 1
-tsm topology set-process -n node3 -pr clustercontroller -c 1
-tsm pending-changes apply --ignore-warnings --ignore-prompt
-tsm stop
+tsm jobs list
+# See if any jobs are running, wait for them to complete, possible to connect to the job to monitor the progress with
+# tsm jobs reconnect -i <JOB ID>
+
+# Once all jobs are finished check for any pending changes
 tsm pending-changes list
 # If there are pending changes:
 #   tsm pending-changes discard
 # or
 #   tsm pending-changes apply
 tsm topology deploy-coordination-service -n node1,node2,node3 --ignore-prompt
-tsm start
 
 
-# Add indexer to node2 and node 3
-tsm topology set-process -n node2 -pr indexandsearchserver -c 1
-tsm topology set-process -n node3 -pr indexandsearchserver -c 1
-# Add psql to node 2 before removing it from node1 (later on)
-tsm topology set-process -n node2 -pr pgsql -c 1
-tsm pending-changes apply --ignore-prompt
 
+# List of names can be found here https://help.tableau.com/current/server/en-us/processes.htm
 
 # Add node2 processes
 node=node2
+tsm topology set-process -n "${node}" -pr pgsql -c 1
 tsm topology set-process -n "${node}" -pr clientfileservice -c 1
 tsm topology set-process -n "${node}" -pr gateway -c 1
 tsm topology set-process -n "${node}" -pr vizportal -c 2
 tsm topology set-process -n "${node}" -pr vizqlserver -c 2
+tsm topology set-process -n "${node}" -pr vizdataservice -c 2
 tsm topology set-process -n "${node}" -pr cacheserver -c 2
 tsm topology set-process -n "${node}" -pr backgrounder -c 2
-tsm topology set-process -n "${node}" -pr dataserver -c 2 ###
-tsm topology set-process -n "${node}" -pr flowprocessor -c 1
+tsm topology set-process -n "${node}" -pr dataserver -c 2
 tsm topology set-process -n "${node}" -pr flowminerva -c 1
-tsm topology set-process -n "${node}" -pr metrics -c 1
 tsm topology set-process -n "${node}" -pr activemqserver -c 1
 tsm topology set-process -n "${node}" -pr tdsservice -c 1
 tsm topology set-process -n "${node}" -pr tdsnativeservice -c 0
@@ -189,29 +183,27 @@ tsm topology set-process -n node1 -pr vizqlserver -c 0
 tsm topology set-process -n node1 -pr cacheserver -c 0
 tsm topology set-process -n node1 -pr backgrounder -c 0
 tsm topology set-process -n node1 -pr dataserver -c 0
-tsm topology set-process -n node1 -pr flowprocessor -c 0
-tsm topology set-process -n node1 -pr metrics -c 0
 tsm topology set-process -n node1 -pr activemqserver -c 0
 tsm topology set-process -n node1 -pr tdsservice -c 0
 tsm topology set-process -n node1 -pr tdsnativeservice -c 0
 tsm topology set-process -n node1 -pr contentexploration -c 0
 tsm topology set-process -n node1 -pr collections -c 0
 tsm topology set-process -n node1 -pr noninteractive -c 0
-tsm topology set-process -n node1 -pr filestore -c 0
 tsm topology set-process -n node1 -pr pgsql -c 0
 
 # Add node3 processes
 node=node3
+tsm topology set-process -n "${node}" -pr indexandsearchserver -c 1
+tsm topology set-process -n "${node}" -pr pgsql -c 1
 tsm topology set-process -n "${node}" -pr clientfileservice -c 1
 tsm topology set-process -n "${node}" -pr gateway -c 1
 tsm topology set-process -n "${node}" -pr vizportal -c 2
 tsm topology set-process -n "${node}" -pr vizqlserver -c 2
+tsm topology set-process -n "${node}" -pr vizdataservice -c 2
 tsm topology set-process -n "${node}" -pr cacheserver -c 2
 tsm topology set-process -n "${node}" -pr backgrounder -c 2
 tsm topology set-process -n "${node}" -pr dataserver -c 2
-tsm topology set-process -n "${node}" -pr flowprocessor -c 1
 tsm topology set-process -n "${node}" -pr flowminerva -c 1
-tsm topology set-process -n "${node}" -pr metrics -c 1
 tsm topology set-process -n "${node}" -pr activemqserver -c 1
 tsm topology set-process -n "${node}" -pr tdsservice -c 1
 tsm topology set-process -n "${node}" -pr tdsnativeservice -c 0

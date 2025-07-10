@@ -202,23 +202,9 @@ tableauServer:
       inputs: |
         <source>
           @type tail
-          path /var/opt/tableau/tableau_server/data/tabsvc/logs/apigateway/*.log
-          pos_file /tmp/apigateway.pos
-          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.apigateway.*"
-          format none
-        </source>
-        <source>
-          @type tail
           path /var/opt/tableau/tableau_server/data/tabsvc/logs/clustercontroller/*.log
           pos_file /tmp/clustercontroller.pos
           tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.clustercontroller.*"
-          format none
-        </source>
-        <source>
-          @type tail
-          path /var/opt/tableau/tableau_server/data/tabsvc/logs/dataserver/*.log
-          pos_file /tmp/dataserver.pos
-          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.dataserver.*"
           format none
         </source>
         <source>
@@ -230,16 +216,30 @@ tableauServer:
         </source>
         <source>
           @type tail
-          path /var/opt/tableau/tableau_server/data/tabsvc/logs/filestore/*.log
-          pos_file /tmp/filestore.pos
-          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.filestore.*"
+          path /var/opt/tableau/tableau_server/data/tabsvc/logs/pgsql/*.csv
+          pos_file /tmp/pgsql.pos
+          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.pgsql.*"
           format none
         </source>
         <source>
           @type tail
-          path /var/opt/tableau/tableau_server/data/tabsvc/logs/pgsql/*.log
-          pos_file /tmp/pgsql.pos
-          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.pgsql.*"
+          path /var/opt/tableau/tableau_server/data/tabsvc/logs/httpd/*.log
+          pos_file /tmp/httpd.pos
+          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.httpd.*"
+          format none
+        </source>
+        <source>
+          @type tail
+          path /var/opt/tableau/tableau_server/data/tabsvc/logs/vizqlserver/*.log
+          pos_file /tmp/vizqlserver.pos
+          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.vizqlserver.*"
+          format none
+        </source>
+        <source>
+          @type tail
+          path /var/opt/tableau/tableau_server/data/tabsvc/logs/vizportal/*.log
+          pos_file /tmp/vizportal.pos
+          tag "#{ENV['POD_NAMESPACE']}.#{ENV['POD_NAME']}.#{ENV['POD_UUID']}.tableau.vizportal.*"
           format none
         </source>
       outputs: |
